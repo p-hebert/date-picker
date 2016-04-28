@@ -1,0 +1,18 @@
+{
+  "name": "exekutive-suite-client",
+  "version": "1.1.1",
+  "description": "Exekutive Suite Client",
+  "dependencies": {
+    "gulp": "^3.9.0",
+    "gulp-cssnano": "^2.1.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-sass": "^2.1.1",
+    "gulp-util": "^3.0.7"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/exekutiveco/exekutive-suite-date-picker.git",
+    "private": true
+  },
+  "license": "MIT"
+}

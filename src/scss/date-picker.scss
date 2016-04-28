@@ -1,0 +1,307 @@
+// http://chir.ag/projects/name-that-color/
+$wild-sand: #f5f5f5;
+$alto: #dbdbdb;
+$azure-radiance: #0a8aee;
+$bright-turquoise: #32ceeb;
+$picton-blue: #4cc3ef;
+$sunset-orange: #fe5151;
+$burnt-sienna: #ea7a48;
+$dusty-gray: #979797;
+$boulder: #797979;
+
+$alert-color: $sunset-orange;
+
+$border-radius: 5px;
+$size: 30px;
+$label-size: 255px;
+$spacing: 4px;
+
+// Increment input
+.increment-input {
+  position: relative;
+  width: 165px;
+  text-align: center;
+  line-height: 20px;
+  font-size: 0.75em;
+}
+
+.increment-input-button {
+  position: absolute;
+  top: 0;
+  width: 20px;
+  height: 20px;
+  fill: $dusty-gray;
+
+  &:hover {
+    fill: $boulder;
+  }
+
+  &.disabled {
+    opacity: 0.2;
+  }
+
+  &.prev {
+    left: 0;
+  }
+
+  &.next {
+    right: 0;
+  }
+}
+
+// Date picker
+@mixin cell {
+  cursor: default;
+
+  &.disabled, &.disabled:hover, &.disabled:active {
+    color: inherit;
+    opacity: 0.5;
+  }
+
+  &:hover {
+    color: $dusty-gray;
+  }
+
+  &.active {
+    background-color: $azure-radiance;
+    color: #fff;
+  }
+}
+
+@mixin date-picker-mode-container {
+  display: none;
+
+  &.active {
+    display: block;
+  }
+}
+
+.date-picker {
+  position: relative;
+}
+
+.date-picker .increment-input {
+  margin: 10px auto;
+}
+
+.date-picker-input {
+  display: table;
+}
+
+.date-picker-body {
+  position: relative;
+  overflow: hidden;
+}
+
+.date-picker-global-increment,
+.date-picker-date-label {
+  float: left;
+  border: 1px solid $dusty-gray;
+  border-radius: $border-radius;
+  height: $size;
+  line-height: $size;
+
+  &:hover {
+    border-color: $boulder;
+  }
+}
+
+.date-picker-global-increment.prev,
+.date-picker-date-label {
+  margin-right: $spacing;
+}
+
+.date-picker-global-increment {
+  display: block;
+  width: $size;
+  font-size: 0.9em;
+  text-align: center;
+  fill: $dusty-gray;
+
+  &:hover {
+    fill: $boulder;
+  }
+
+  > use {
+    transform: translate(-1px, -1px); // Substract border width to center
+  }
+}
+
+.date-picker-date-label {
+  position: relative;
+  width: $label-size;
+  text-align: center;
+  text-transform: none;
+
+  &::after {
+    bottom: 2px;
+    right: 2px;
+    position: absolute;
+    content: "";
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 8px 8px;
+    border-color: transparent transparent $dusty-gray transparent;
+  }
+
+  &:hover::after {
+    border-color: transparent transparent $boulder transparent;;
+  }
+}
+
+.date-picker-content {
+  margin-top: $spacing;
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 2 * $size + 2 * $spacing + $label-size;
+  background-color: #fff;
+  border: 1px solid $dusty-gray;
+  border-radius: $border-radius * 2;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 160ms ease-in, transform 160ms ease-in-out;
+  transform: translateY(5px);
+
+  // Working with Bootstrap dropdown behavior since the parent element
+  // of the trigger button is sibling to the date picker content element
+  .open + & {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: initial;
+  }
+}
+
+.date-picker-mode-button-row {
+  display: table;
+  width: 100%;
+  background-color: $wild-sand;
+}
+
+.date-picker-mode-button {
+  @include cell;
+  display: table-cell;
+  width: 25%;
+  padding: 12px 0;
+  text-align: center;
+  font-size: 0.8em;
+}
+
+.date-picker-content-wrapper {
+  width: 7 * $size + 6 * $spacing;
+  margin: 0 auto;
+  padding: 0 0 24px;
+  overflow: hidden;
+}
+
+// Day cell
+.date-picker-mode-day {
+  @include date-picker-mode-container;
+}
+
+.date-picker-day-cell {
+  display: block;
+  float: left;
+  width: $size;
+  height: $size;
+  text-align: center;
+  border-radius: 5px;
+  font-size: 0.8em;
+  line-height: $size;
+
+  & + & {
+    margin-left: $spacing;
+  }
+
+  .date-picker-mode-day & {
+    @include cell;
+    background-color: $wild-sand;
+  }
+
+  &.disabled {
+    opacity: 0.5;
+  }
+}
+
+// Week row
+.date-picker-mode-week {
+  @include date-picker-mode-container;
+}
+
+.date-picker-week-row {
+  overflow: hidden;
+  border-radius: $border-radius;
+
+  & + & {
+    margin-top: 2 * $spacing;
+  }
+
+  .date-picker-mode-week & {
+    @include cell;
+    background-color: $wild-sand;
+  }
+}
+
+// Month
+.date-picker-mode-month {
+  @include date-picker-mode-container;
+}
+
+.date-picker-mode-month .date-picker-content-wrapper {
+  width: 3 * 60px + 2 * 20px;
+}
+
+.date-picker-month-cell {
+  @include cell;
+  float: left;
+  display: block;
+  width: 60px;
+  height: 40px;
+  line-height: 40px;
+  text-align: center;
+  background-color: $wild-sand;
+  border-radius: $border-radius;
+  font-size: 0.8em;
+  margin-left: 20px;
+  margin-bottom: 2 * $spacing;
+
+  &:nth-child(3n-2) {
+    margin-left: 0;
+  }
+
+  &:nth-last-child(-n+3) {
+    margin-bottom: 0;
+  }
+}
+
+// Year
+.date-picker-mode-year {
+  @include date-picker-mode-container;
+}
+.date-picker-mode-year .date-picker-content-wrapper {
+  width: 2 * 100px + 20px;
+}
+.date-picker-year-cell {
+  @include cell;
+  display: block;
+  width: 100px;
+  height: 40px;
+  margin-left: 20px;
+  margin-bottom: 10px;
+  font-size: 0.8em;
+  line-height: 40px;
+  float: left;
+  background-color: $wild-sand;
+  text-align: center;
+  border-radius: $border-radius;
+
+  &:nth-child(2n-1) {
+    margin-left: 0;
+  }
+
+  &:nth-last-child(-n+2) {
+    margin-bottom: 0;
+  }
+}

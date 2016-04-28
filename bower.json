@@ -1,0 +1,26 @@
+{
+  "name": "exekutive-suite-date-picker",
+  "description": "Exekutie Suite Date Picker",
+  "main": "./src/date-picker.html",
+  "authors": [
+    "p-hebert <philippe.hebert.qc@gmail.com>",
+    "guillaume-t95 <guillaume.turgeon95@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "calendar",
+    "date-picker",
+    "widget"
+  ],
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "lib",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6"
+  }
+}

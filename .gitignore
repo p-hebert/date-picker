@@ -1,0 +1,20 @@
+.DS_Store
+
+# IDE Files
+#-------------------------
+/nbproject/
+.idea/*
+
+## Sublime Text cache files
+*.tmlanguage.cache
+*.tmPreferences.cache
+*.stTheme.cache
+*.sublime-workspace
+*.sublime-project
+
+##Libraries + Node Modules
+lib
+node_modules
+
+## Compiled css
+src/date-picker.css
