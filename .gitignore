@@ -16,5 +16,6 @@
 lib
 node_modules
 
-## Compiled css
+## Compiled files
 src/date-picker.css
+src/date-picker.js

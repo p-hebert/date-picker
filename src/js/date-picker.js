@@ -15,21 +15,50 @@
     options = options === undefined ? {} : options;
     this.scale = (options.scale !== undefined && DatePicker.prototype.scales.indexOf(options.scale) !== -1)? options.scale : defaults.scale;
     if(options.date instanceof Date){
+      this.date = options.date;
       this.year = options.date.getUTCFullYear();
       this.month = options.date.getUTCMonth();
       this.day = options.date.getUTCDate();
     }else{
+      this.date = defaults.date;
       this.year = defaults.date.getUTCFullYear();
       this.month = defaults.date.getUTCMonth();
       this.day = defaults.date.getUTCDate();
     }
-    generateSVG(options);
-    generateHTML(options);
+    this.partials = {
+      "day": new Calendar(this.date, "day"),
+      "week": new Calendar(this.date, "week"),
+      "month": new Calendar(this.date, "month"),
+      "year": new Calendar(this.date, "year")
+    };
+    //Generating markup
+    this.svg = generateSVG(options);
+    this.html = generateControls(this.partials);
+
+    //Appending to DOM
+    //Appending SVG to body
+    document.querySelector('body').appendChild(this.svg);
+
+    //Appending HTML to options.parent
+    var parent;
+    if(typeof options.parent === "string"){
+      parent = document.querySelector(options.parent);
+      parent.appendChild(this.html);
+    }else if(options.parent.nodeType !== undefined){
+      parent = options.parent;
+      parent.appendChild(this.html);
+    }
+
   }
 
   DatePicker.prototype.scales = ["day","week","month","year"];
 
   }
+
+  DatePicker.prototype.Calendar = Calendar;
+
+  //=include ./calendar.js
+
   /**
   * Initializes the SVG icons for the DatePicker
   * @param options <Object> List of options for the DatePicker
@@ -37,7 +66,7 @@
   function generateSVG(options){
     //If icons are already set, return
     if(document.querySelector("svg#dp-icons")){
-      return;
+      return document.querySelector("svg#dp-icons");
     }
     var svg = document.createElement('svg');
     svg.id = "dp-icons";
@@ -89,7 +118,10 @@
     };
     initIcons(idbig, options.icons);
     initIcons(idsmall, options.icons);
-    document.querySelector('body').appendChild(svg);
+    return svg;
+  }
+
+  function generateControls(){
   }
 
   window.DatePicker = DatePicker;
