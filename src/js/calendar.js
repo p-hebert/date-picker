@@ -10,14 +10,23 @@ var Calendar =
     //Date that is modified by the user
     this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
 
+    //Date used for applying ui changes
+    this.uidate = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
+
     //Saved state in case of rollback
     this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
 
-    //Scale for this implementation
+    //Scale for this instance
     this.scale = scale;
 
-    //UI Components to watch
-    this.uicomponents = {};
+    //Callbacks for UI update
+    this.uicallbacks = {};
+
+    //Incremental Input controls
+    this.incrementInputs = {};
+
+    //All daily/weekly calendars
+    this.calendars = {};
 
     this.generateHTML();
 
@@ -30,18 +39,36 @@ var Calendar =
     fr: ["Janvier", "Février", "Mars", "Avril", "Mai", "Juin", "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre"]
   };
 
+  Calendar.prototype.statuses = {
+    active: "active",
+    inactive: "inactive"
+  };
+
+  Calendar.prototype.scales = {
+    day : "day",
+    week : "week",
+    month : "month",
+    year : "year"
+  };
+
+  Calendar.prototype.inputs = {
+    minput: "minput",
+    yinput: "yinput",
+    ytab: "ytab"
+  };
+
   Calendar.prototype.generateHTML = function(){
     switch(this.scale){
-      case "day":
+      case Calendar.prototype.scales.day:
         this.html = this.dailyCalendarHTML();
         break;
-      case "week":
+      case Calendar.prototype.scales.week:
         this.html = this.weeklyCalendarHTML();
         break;
-      case "month":
+      case Calendar.prototype.scales.month:
         this.html = this.monthlyCalendarHTML();
         break;
-      case "year":
+      case Calendar.prototype.scales.year:
         this.html = this.yearlyCalendarHTML();
         break;
       default:
@@ -60,7 +87,7 @@ var Calendar =
   Calendar.prototype.setDate = function (date) {
     if(date instanceof Date && (this.min_date !== undefined || date > this.min_date) && (this.max_date !== undefined || date < this.max_date)){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.uiapply();
+      this.uiApply();
     }
   };
 
@@ -68,7 +95,7 @@ var Calendar =
     this.date.setUTCFullYear(this.prev_date.getUTCFullYear());
     this.date.setUTCMonth(this.prev_date.getUTCMonth());
     this.date.setUTCDate(this.prev_date.getUTCDate());
-    this.uiapply();
+    this.uiApply();
   };
 
   Calendar.prototype.commit = function () {
@@ -77,38 +104,129 @@ var Calendar =
     this.prev_date.setUTCDate(this.date.getUTCDate());
   };
 
-  Calendar.prototype.uiapply = function(scale) {
+  Calendar.prototype.uiApply = function(scale) {
+    var val, uuid;
     if(scale === undefined){
-      for(var s in this.uicomponents){
-        for(var i = 0 ; i < this.uicomponents[s].length ; i++){
-          this.uicomponents[s][i].call(this);
-        }
+      var updateCal = false;
+      if(this.uidate.getUTCFullYear() !== this.date.getUTCFullYear()){
+        this.uiApply(Calendar.prototype.scales.year);
+        updateCal = true;
+        this.uidate.setUTCFullYear(this.date.getUTCFullYear());
+        this.uidate.setUTCDate(this.date.getUTCDate());
+      }
+      if(this.uidate.getUTCMonth() !== this.date.getUTCMonth()){
+        this.uiApply(Calendar.prototype.scales.month);
+        updateCal = true;
+        this.uidate.setUTCMonth(this.date.getUTCMonth());
+        this.uidate.setUTCDate(this.date.getUTCDate());
+      }
+      if(this.uidate.getUTCDate() !== this.date.getUTCDate()){
+        this.uiApply(Calendar.prototype.scales.day);
+        this.uidate.setUTCDate(this.date.getUTCDate());
+      }
+      if(updateCal){
+        this.updateCalendarHTML();
       }
     }else{
-      for(var j = 0 ; j < this.uicomponents[scale] ; j++){
-        this.uicomponents[scale][j].call(this);
+      for(uuid in this.uicallbacks[scale]){
+        val = this.uicallbacks[scale][uuid];
+        if(val.status === Calendar.prototype.statuses.active){
+          val.function.call(this);
+        }
       }
     }
-
   };
 
-  Calendar.prototype.uiregister = function(scale, fn) {
-    if(this.uicomponents[scale] === undefined){
-      this.uicomponents[scale] = [];
+  Calendar.prototype.uiRegister = function(scale, fn) {
+    if(this.uicallbacks[scale] === undefined){
+      this.uicallbacks[scale] = {};
     }
-    this.uicomponents[scale].push(fn);
+    var uuid = generateUUID();
+    this.uicallbacks[scale][uuid] = {function: fn, status: Calendar.prototype.statuses.active};
+    return uuid;
   };
 
+  Calendar.prototype.uiActivate = function(scale, uuid) {
+    if(typeof this.uicallbacks[scale][uuid].function === "function"){
+      this.uicallbacks[scale][uuid].status = Calendar.prototype.statuses.active;
+    }
+  };
+
+  Calendar.prototype.uiDisactivate = function(scale, uuid){
+    if(typeof this.uicallbacks[scale][uuid].function === "function"){
+      this.uicallbacks[scale][uuid].status = Calendar.prototype.statuses.inactive;
+    }
+  };
+
+  Calendar.prototype._initCalendarIndex = function () {
+    if(this.calendars[this.date.getUTCFullYear()] === undefined){
+      this.calendars[this.date.getUTCFullYear()] = {};
+    }
+    if(this.calendars[this.date.getUTCFullYear()][this.date.getUTCMonth()] === undefined){
+      this.calendars[this.date.getUTCFullYear()][this.date.getUTCMonth()] = {};
+    }
+  };
+
+  Calendar.prototype.getCalendarHTML = function () {
+    this._initCalendarIndex();
+    var calendar;
+    if(this.calendars[this.date.getUTCFullYear()][this.date.getUTCMonth()][this.scale] !== undefined){
+      calendar = this.calendars[this.date.getUTCFullYear()][this.date.getUTCMonth()][this.scale];
+      return calendar;
+    }else{
+      calendar = this.calendarHTML();
+      this.calendars[this.date.getUTCFullYear()][this.date.getUTCMonth()][this.scale] = calendar;
+      return calendar;
+    }
+  };
+
+  Calendar.prototype.updateCalendarHTML = function () {
+    var oldc, newc;
+    for (var i = 0; i < this.html.children[0].children.length; i++) {
+      if (this.html.children[0].children[i].className == "date-picker-month-calendar") {
+        oldc = this.html.children[0].children[i];
+        newc = this.getCalendarHTML();
+        if(!(oldc.cdata.year === newc.cdata.year && oldc.cdata.month === newc.cdata.month)){
+          this.html.children[0].removeChild(oldc);
+          this.html.children[0].appendChild(newc);
+          this.uiActivate(Calendar.prototype.scales.day, newc.callbackUUID);
+          this.uiDisactivate(Calendar.prototype.scales.day, oldc.callbackUUID);
+          this.uiApply(Calendar.prototype.scales.day);
+        }
+        break;
+      }
+    }
+  };
+
+  Calendar.prototype.getIncrementInput = function (input) {
+    if(this.incrementInputs[input] === undefined){
+      switch(input){
+        case Calendar.prototype.inputs.yinput:
+          this.incrementInputs[input] = this.yearInputHTML();
+          break;
+        case Calendar.prototype.inputs.minput:
+          this.incrementInputs[input] = this.monthInputHTML();
+          break;
+        case Calendar.prototype.inputs.ytab:
+          this.incrementInputs[input] = this.yearTabHTML();
+          break;
+        default:
+          return undefined;
+      }
+    }
+    return this.incrementInputs[input];
+  };
 
   Calendar.prototype.dailyCalendarHTML = function () {
     var container = document.createElement('div'),
         wrapper = document.createElement('div'),
-        inc_input = [this.yearInputHTML(), this.monthInputHTML()],
-        rows = [];
+        yinput = this.getIncrementInput(Calendar.prototype.inputs.yinput),
+        minput = this.getIncrementInput(Calendar.prototype.inputs.minput);
     container.className = "date-picker-mode-day active";
     wrapper.className = "date-picker-content-wrapper";
-    wrapper.appendChild(inc_input[0]);
-    wrapper.appendChild(inc_input[1]);
+    wrapper.appendChild(yinput);
+    wrapper.appendChild(minput);
+    wrapper.appendChild(this.getCalendarHTML());
     container.appendChild(wrapper);
     return container;
   };
@@ -138,40 +256,43 @@ var Calendar =
     yinput.className = "increment-input";
     yinput.innerHTML = inner;
     yinput.children[0].innerHTML = this.date.getUTCFullYear();
-    this.uiregister("year", function(){
-      yinput.children[0].innerHTML = self.date.getUTCFullYear();
-    });
+    yinput.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.year, function(){
+        yinput.children[0].innerHTML = self.date.getUTCFullYear();
+      });
 
     var yprev = yinput.children[1].children[0];
-    this.uiregister("year", function(){
-      //Hiding previous button if at the min value
-      if(self.min_date !== undefined && self.min_date.getUTCFullYear() === self.date.getUTCFullYear()){
-        yprev.setAttribute("class", "increment-input-button prev disabled");
-        yprev.isDisabled = true;
-      //Else making sure button is visible
-      }else{
-        yprev.setAttribute("class", "increment-input-button prev");
-        yprev.isDisabled = false;
-      }
-    });
-    yprev.addEventListener('click', function(){
-      yprevClickCallback(self, yprev);
+    yprev.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.year, function(){
+        //Hiding previous button if at the min value
+        if(self.min_date !== undefined && self.min_date.getUTCFullYear() === self.date.getUTCFullYear()){
+          yprev.setAttribute("class", "increment-input-button prev disabled");
+          yprev.isDisabled = true;
+        //Else making sure button is visible
+        }else{
+          yprev.setAttribute("class", "increment-input-button prev");
+          yprev.isDisabled = false;
+        }
+      });
+    yprev.addEventListener('click', function(e){
+      yprevClickCallback(self, e.target);
     });
 
     var ynext = yinput.children[1].children[1];
-    this.uiregister("year", function(){
-      //Hiding next button if at the max value
-      if(self.max_date !== undefined && self.max_date.getUTCFullYear() === self.date.getUTCFullYear()){
-        ynext.setAttribute("class", "increment-input-button next disabled");
-        ynext.isDisabled = true;
-      //Else making sure button is visible
-      }else{
-        ynext.setAttribute("class", "increment-input-button next");
-        ynext.isDisabled = false;
-      }
-    });
-    ynext.addEventListener('click', function(){
-      ynextClickCallback(self, ynext);
+    ynext.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.year, function(){
+        //Hiding next button if at the max value
+        if(self.max_date !== undefined && self.max_date.getUTCFullYear() === self.date.getUTCFullYear()){
+          ynext.setAttribute("class", "increment-input-button next disabled");
+          ynext.isDisabled = true;
+        //Else making sure button is visible
+        }else{
+          ynext.setAttribute("class", "increment-input-button next");
+          ynext.isDisabled = false;
+        }
+      });
+    ynext.addEventListener('click', function(e){
+      ynextClickCallback(self, e.target);
     });
 
     return yinput;
@@ -190,131 +311,141 @@ var Calendar =
     minput.className = "increment-input";
     minput.innerHTML = inner;
     minput.children[0].innerHTML = this.months[this.lang][this.date.getUTCMonth()];
-    this.uiregister("month", function(){
-      minput.children[0].innerHTML = self.months[self.lang][self.date.getUTCMonth()];
-    });
+    minput.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.month, function(){
+        minput.children[0].innerHTML = self.months[self.lang][self.date.getUTCMonth()];
+      });
 
     var mprev = minput.children[1].children[0];
-    this.uiregister("month", function(){
-      //Hiding previous button if at the min value
-      if(self.min_date !== undefined &&
-        self.min_date.getUTCFullYear() === self.date.getUTCFullYear() && self.min_date.getUTCMonth() === self.date.getUTCMonth()){
-        mprev.setAttribute("class", "increment-input-button prev disabled");
-        mprev.isDisabled = true;
-      //Else making sure button is visible
-      }else if(self.max_date !== undefined){
-        mprev.setAttribute("class", "increment-input-button prev");
-        mprev.isDisabled = false;
-      }
-    });
+    mprev.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.month, function(){
+        //Hiding previous button if at the min value
+        if(self.min_date !== undefined &&
+          self.min_date.getUTCFullYear() === self.date.getUTCFullYear() && self.min_date.getUTCMonth() === self.date.getUTCMonth()){
+          mprev.setAttribute("class", "increment-input-button prev disabled");
+          mprev.isDisabled = true;
+        //Else making sure button is visible
+        }else if(self.max_date !== undefined){
+          mprev.setAttribute("class", "increment-input-button prev");
+          mprev.isDisabled = false;
+        }
+      });
 
-    mprev.addEventListener('click', function(){
-      mprevClickCallback(self, mprev);
+    mprev.addEventListener('click', function(e){
+      mprevClickCallback(self, e.target);
     });
 
     var mnext = minput.children[1].children[1];
-    this.uiregister("month", function(){
-      //Hiding next button if at the max value
-      if(self.max_date !== undefined &&
-        self.max_date.getUTCFullYear() === self.date.getUTCFullYear() && self.max_date.getUTCMonth() === self.date.getUTCMonth()){
-        mnext.setAttribute("class", "increment-input-button next disabled");
-        mnext.isDisabled = true;
-      //Else making sure button is visible
-    }else if(self.max_date !== undefined){
-        mnext.setAttribute("class","increment-input-button next");
-        mnext.isDisabled = false;
-      }
-    });
+    mnext.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.month, function(){
+        //Hiding next button if at the max value
+        if(self.max_date !== undefined &&
+          self.max_date.getUTCFullYear() === self.date.getUTCFullYear() && self.max_date.getUTCMonth() === self.date.getUTCMonth()){
+          mnext.setAttribute("class", "increment-input-button next disabled");
+          mnext.isDisabled = true;
+        //Else making sure button is visible
+        }else if(self.max_date !== undefined){
+          mnext.setAttribute("class","increment-input-button next");
+          mnext.isDisabled = false;
+        }
+      });
 
-    mnext.addEventListener('click', function(){
-      mnextClickCallback(self, mnext);
+    mnext.addEventListener('click', function(e){
+      mnextClickCallback(self, e.target);
     });
 
     return minput;
   };
 
-  Calendar.prototype.rowsHTML = function (scale) {
-    var rows = [],
+  Calendar.prototype.calendarHTML = function () {
+    var self = this,
+        calendar = document.createElement('div'),
         daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth()),
         daysInPrevMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth()-1),
-        firstDayOfMonth = DateUtils.firstOfMonth(this.date);
+        firstDayOfMonth = DateUtils.firstOfMonth(this.date),
+        callback = function(e){
+            daySpanClickCallback(self, calendar, e.target);
+        };
+    calendar.className = "date-picker-month-calendar";
+    var row, span, spans = [], day = 1;
+    //Going through weeks
+    for(var i = 0 ; i < 6 ; i++){
+      //Creating week
+      row = document.createElement('div');
+      row.className = "date-picker-week-row";
+      var j = 0;
+      if(i === 0){
+        //First week potentially has days from another month.
+        for(; j < firstDayOfMonth ; j++){
+          span = document.createElement('span');
+          span.className = "date-picker-day-cell disabled";
+          span.innerHTML = daysInPrevMonth - (firstDayOfMonth - j);
+          span.cdata = {
+            selectable: false,
+            day: daysInPrevMonth - (firstDayOfMonth - j),
+            month: self.date.getUTCMonth()-1
+          };
+          row.appendChild(span);
+          spans.push(span);
+        }
+      }
+      //Starting at j = x where x is either 0 if past first week or x is firstDayOfMonth
+      for(; j < 7 ; j++){
+        span = document.createElement('span');
+        span.cdata = {
+          selectable: day <= daysInMonth,
+          //Takes in account days of next month
+          day: day > daysInMonth ? day - daysInMonth : day,
+          month: day > daysInMonth ? this.date.getUTCMonth()+1 : this.date.getUTCMonth()
+        };
+        //If greater than daysInMonth, the date is in next month and should be disabled.
+        if(day > daysInMonth){
+          span.className = "date-picker-day-cell disabled";
+        }else if(span.cdata.day === self.date.getUTCDate()){
+          span.className = "date-picker-day-cell active";
+          calendar.current = span;
+        }else{
+          span.className = "date-picker-day-cell";
+        }
+        span.innerHTML = span.cdata.day;
+        span.addEventListener('click', callback);
+        row.appendChild(span);
+        spans.push(span);
+        day++;
+      }
+      calendar.appendChild(row);
+    }
+    calendar.cdata = {
+      year: self.date.getUTCFullYear(),
+      month: self.date.getUTCMonth()
+    };
+    calendar.callbackUUID =
+      this.uiRegister(Calendar.prototype.scales.day, function(){
+        calendar.current.className = "date-picker-day-cell";
+        for(var i = 0 ; i < spans.length; i++){
+          if(self.date.getUTCDate() === spans[i].cdata.day && self.date.getUTCMonth() === spans[i].cdata.month){
+            calendar.current = spans[i];
+            calendar.current.className = "date-picker-day-cell active";
+            break;
+          }
+        }
+      });
 
+    return calendar;
   };
-
-  /*<div class="date-picker-mode-day active">
-    <div class="date-picker-content-wrapper">
-      <div class="increment-input">
-        <span class="increment-input-value">2016</span>
-        <nav>
-          <svg class="increment-input-button prev"><use xlink:href="#arrow-prev-small"></svg>
-          <svg class="increment-input-button next"><use xlink:href="#arrow-next-small"></svg>
-        </nav>
-      </div>
-      <div class="increment-input">
-        <span class="increment-input-value">March</span>
-        <nav>
-          <svg class="increment-input-button prev"><use xlink:href="#arrow-prev-small"></svg>
-          <svg class="increment-input-button next"><use xlink:href="#arrow-next-small"></svg>
-        </nav>
-      </div>
-      <div class="date-picker-week-row">
-        <span class="date-picker-day-cell disabled">28</span>
-        <span class="date-picker-day-cell disabled">29</span>
-        <span class="date-picker-day-cell">1</span>
-        <span class="date-picker-day-cell">2</span>
-        <span class="date-picker-day-cell">3</span>
-        <span class="date-picker-day-cell">4</span>
-        <span class="date-picker-day-cell">5</span>
-      </div>
-      <div class="date-picker-week-row">
-        <span class="date-picker-day-cell active">6</span>
-        <span class="date-picker-day-cell">7</span>
-        <span class="date-picker-day-cell">8</span>
-        <span class="date-picker-day-cell">9</span>
-        <span class="date-picker-day-cell">10</span>
-        <span class="date-picker-day-cell">11</span>
-        <span class="date-picker-day-cell">12</span>
-      </div>
-      <div class="date-picker-week-row">
-        <span class="date-picker-day-cell">13</span>
-        <span class="date-picker-day-cell">14</span>
-        <span class="date-picker-day-cell">15</span>
-        <span class="date-picker-day-cell">16</span>
-        <span class="date-picker-day-cell">17</span>
-        <span class="date-picker-day-cell">18</span>
-        <span class="date-picker-day-cell">19</span>
-      </div>
-      <div class="date-picker-week-row">
-        <span class="date-picker-day-cell">20</span>
-        <span class="date-picker-day-cell">21</span>
-        <span class="date-picker-day-cell">22</span>
-        <span class="date-picker-day-cell">23</span>
-        <span class="date-picker-day-cell">24</span>
-        <span class="date-picker-day-cell">25</span>
-        <span class="date-picker-day-cell">26</span>
-      </div>
-      <div class="date-picker-week-row">
-        <span class="date-picker-day-cell">27</span>
-        <span class="date-picker-day-cell">28</span>
-        <span class="date-picker-day-cell">29</span>
-        <span class="date-picker-day-cell">30</span>
-        <span class="date-picker-day-cell disabled">1</span>
-        <span class="date-picker-day-cell disabled">2</span>
-        <span class="date-picker-day-cell disabled">3</span>
-      </div>
-    </div>
-  </div>*/
 
   var yprevClickCallback = function(self, button){
     if(button.isDisabled === true){
       return;
     }
     var year = self.date.getUTCFullYear() - 1,
-        daysInMonth = DateUtils.daysInMonth(self.date.getUTCFullYear() - 1, self.date.getUTCMonth());
+        daysInMonth = DateUtils.daysInMonth(self.date.getUTCFullYear() - 1, self.date.getUTCMonth()),
+        uiday = false, uimonth = false, uiyear = false;
     //Checks if action is legal (not going below min year)
     if(self.min_date === undefined || self.min_date.getUTCFullYear() <= year){
       //To prevent invalid dates like Feb 30th
       if(self.date.getUTCDate() > daysInMonth){
+
         self.date.setUTCDate(daysInMonth);
       }
 
@@ -328,7 +459,7 @@ var Calendar =
           self.date.setUTCDate(self.min_date.getUTCDate());
         }
       }
-      self.uiapply();
+      self.uiApply();
     }
     //else do nothing
   };
@@ -358,7 +489,7 @@ var Calendar =
           self.date.setUTCDate(self.max_date.getUTCDate());
         }
       }
-      self.uiapply();
+      self.uiApply();
     }
     //else do nothing
   };
@@ -419,7 +550,7 @@ var Calendar =
     }
 
     if(apply){
-      self.uiapply();
+      self.uiApply();
     }
   };
 
@@ -441,12 +572,6 @@ var Calendar =
           }
           self.date.setUTCMonth(month);
         };
-    // console.log('* self.date.getUTCMonth(): ' + self.date.getUTCMonth());
-    // console.log('* self.date.getUTCFullYear(): ' + self.date.getUTCFullYear());
-    // console.log('* self.max_date.getUTCMonth(): ' + self.max_date.getUTCMonth());
-    // console.log('* self.max_date.getUTCFullYear(): ' + self.max_date.getUTCFullYear());
-    // console.log('* month: ' + month);
-    // console.log('* year: ' + year);
     //If no max_date, no constraints.
     if(self.max_date === undefined || self.max_date.getUTCFullYear() > year+1){
       apply = true;
@@ -485,8 +610,30 @@ var Calendar =
     }
 
     if(apply){
-      self.uiapply();
+      self.uiApply();
     }
+  };
+
+  var daySpanClickCallback = function(self, calendar, span){
+    var daysInMonth = DateUtils.daysInMonth(self.date.getUTCFullYear(), self.date.getUTCMonth());
+    if(span.cdata.selectable === true && span.cdata.day <= daysInMonth && span.cdata.day > 0){
+      self.date.setUTCDate(span.cdata.day);
+      self.uiApply(Calendar.prototype.scales.day);
+    }
+  };
+
+  //Source
+  //http://stackoverflow.com/questions/105034/create-guid-uuid-in-javascript
+  var generateUUID = function(){
+    var lut = []; for (var i=0; i<256; i++) { lut[i] = (i<16?'0':'')+(i).toString(16); }
+    var d0 = Math.random()*0xffffffff|0;
+    var d1 = Math.random()*0xffffffff|0;
+    var d2 = Math.random()*0xffffffff|0;
+    var d3 = Math.random()*0xffffffff|0;
+    return lut[d0&0xff]+lut[d0>>8&0xff]+lut[d0>>16&0xff]+lut[d0>>24&0xff]+
+      lut[d1&0xff]+lut[d1>>8&0xff]+lut[d1>>16&0x0f|0x40]+lut[d1>>24&0xff]+
+      lut[d2&0x3f|0x80]+lut[d2>>8&0xff]+lut[d2>>16&0xff]+lut[d2>>24&0xff]+
+      lut[d3&0xff]+lut[d3>>8&0xff]+lut[d3>>16&0xff]+lut[d3>>24&0xff];
   };
 
   var DateUtils = {
@@ -495,6 +642,10 @@ var Calendar =
     },
     daysInMonth: function(year, month){
       return [31, (this.isLeapYear(year) ? 29 : 28), 31, 30, 31, 30, 31, 31, 30, 31, 30, 31][month];
+    },
+    weeksInMonth: function(year, month){
+      var weeks = month == 2 ? ((this.isLeapYear(year)) ? 5 : 4) : 5;
+      return this.firstOfMonth(new Date(year,month, 1)) > 4 ? weeks + 1 : weeks;
     },
     firstOfMonth: function(date){
       return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getDay();
