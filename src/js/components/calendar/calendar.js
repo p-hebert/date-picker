@@ -116,19 +116,6 @@ var Calendar =
       if(this.scale === Calendar.prototype.enum.scales.week){
         row.addEventListener('click', callback);
       }
-      row.cdata = {
-        inMonth: day < daysInMonth,
-        start: new Date(
-                          self.date.getUTCFullYear(),
-                          this.inMonth ? self.date.getUTCMonth() : self.date.getUTCMonth() + 1,
-                          this.inMonth ? day - daysInMonth : day
-                       ),
-        end:   new Date(
-                          this.date.getUTCFullYear(),
-                          day + 6 < daysInMonth ? self.date.getUTCMonth() : self.date.getUTCMonth() + 1,
-                          day + 6 < daysInMonth ? day + 6 - daysInMonth : day + 6
-                       ),
-      };
       var j = 0;
       if(i === 0){
         //First week potentially has days from another month.
@@ -177,6 +164,19 @@ var Calendar =
         spans.push(span);
         day++;
       }
+      row.cdata = {
+        inMonth: self._rowInMonth(row),
+        start: new Date(
+                          self.date.getUTCFullYear(),
+                          row.children[0].cdata.month,
+                          row.children[0].cdata.day
+                       ),
+        end:   new Date(
+                          this.date.getUTCFullYear(),
+                          row.children[6].cdata.month,
+                          row.children[6].cdata.day
+                       ),
+      };
       rows.push(row);
       calendar.appendChild(row);
     }
@@ -187,15 +187,29 @@ var Calendar =
     return calendar;
   };
 
+  Calendar.prototype._rowInMonth = function (row) {
+    for(var i = 0 ; i < row.children.length; i++){
+      if(row.children[i].className.indexOf("disabled") === -1){
+        return true;
+      }
+    }
+    return false;
+  };
+
   Calendar.prototype.updateSelection = function (span) {
+    console.log("Update Selection Method, argument:");
+    console.log(span);
     var calendar = this.html,
-        day = this.date.getUTCDate();
+        day = this.date.getUTCDate(),
+        month = this.date.getUTCMonth();
+        console.log("Current cdata before change:");
+        console.log(calendar.current.cdata);
     if(calendar.current.cdata.day !== day){
       this.removeSelection();
       if(span === undefined){
         for (var i = 0; i < this.html.children.length; i++) {
           for (var j = 0; j < this.html.children[i].children.length; j++) {
-            if(this.html.children[i].children[j].cdata.day === day){
+            if(this.html.children[i].children[j].cdata.day === day && this.html.children[i].children[j].cdata.month === month){
               this.newSelection(this.html.children[i].children[j]);
             }
           }
@@ -203,25 +217,31 @@ var Calendar =
       }else{
         this.newSelection(span);
       }
-
-    }
+    }else console.log("Same day");
   };
 
   Calendar.prototype.newSelection = function (span) {
+    console.log("{scale = "+ this.scale + "} : New Selection Method, argument:");
+    console.log(span);
     if(span.cdata.day === this.date.getUTCDate()){
       this.html.current = span;
       if(this.scale === Calendar.prototype.enum.scales.day){
         this.html.current.className = "date-picker-day-cell active";
       }else if (this.scale === Calendar.prototype.enum.scales.week){
+        console.log("New selection {scale = week}:");
+        console.log(this.html.current.parentNode.cdata);
         this.html.current.parentNode.className = "date-picker-week-row active";
       }
     }
   };
 
   Calendar.prototype.removeSelection = function () {
+    console.log("Remove Selection Method");
     if(this.scale === Calendar.prototype.enum.scales.day){
       this.html.current.className = "date-picker-day-cell";
     }else if (this.scale === Calendar.prototype.enum.scales.week){
+      console.log("Removing previous selection {scale = week}:");
+      console.log(this.html.current.parentNode.cdata);
       this.html.current.parentNode.className = "date-picker-week-row";
     }
   };
@@ -232,6 +252,8 @@ var Calendar =
     }
     if(target.cdata.inMonth === true){
       this.date.setUTCDate(target.cdata.start.getUTCDate());
+      console.log("Row click: new date: " + this.date);
+      console.log("Row is inMonth");
       this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
       this.updateSelection(target.children[0]);
     }
@@ -247,14 +269,14 @@ var Calendar =
   };
 
   Calendar.prototype.subscribe = function (parent) {
-    console.log("Calendar subscribes parent");
     if(parent !== undefined){
-      console.log(this.mediation.events.emit.cupdate);
       this.mediator.subscribe(this.mediation.events.emit.cupdate, parent);
     }
   };
 
   Calendar.prototype.notify = function (e) {
+    console.log("Calendar.proto.notify:");
+    console.log(e);
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
@@ -266,6 +288,7 @@ var Calendar =
           }
         case Events.desc.update.cal:
           if(e.data.date !== undefined && e.data.date instanceof Date){
+            console.log("New Date:" + e.data.date);
             this.setDate(e.data.date);
           }
           this.updateCalendarHTML();
