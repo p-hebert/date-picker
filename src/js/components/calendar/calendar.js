@@ -197,13 +197,9 @@ var Calendar =
   };
 
   Calendar.prototype.updateSelection = function (span) {
-    console.log("Update Selection Method, argument:");
-    console.log(span);
     var calendar = this.html,
         day = this.date.getUTCDate(),
         month = this.date.getUTCMonth();
-        console.log("Current cdata before change:");
-        console.log(calendar.current.cdata);
     if(calendar.current.cdata.day !== day){
       this.removeSelection();
       if(span === undefined){
@@ -221,27 +217,20 @@ var Calendar =
   };
 
   Calendar.prototype.newSelection = function (span) {
-    console.log("{scale = "+ this.scale + "} : New Selection Method, argument:");
-    console.log(span);
     if(span.cdata.day === this.date.getUTCDate()){
       this.html.current = span;
       if(this.scale === Calendar.prototype.enum.scales.day){
         this.html.current.className = "date-picker-day-cell active";
       }else if (this.scale === Calendar.prototype.enum.scales.week){
-        console.log("New selection {scale = week}:");
-        console.log(this.html.current.parentNode.cdata);
         this.html.current.parentNode.className = "date-picker-week-row active";
       }
     }
   };
 
   Calendar.prototype.removeSelection = function () {
-    console.log("Remove Selection Method");
     if(this.scale === Calendar.prototype.enum.scales.day){
       this.html.current.className = "date-picker-day-cell";
     }else if (this.scale === Calendar.prototype.enum.scales.week){
-      console.log("Removing previous selection {scale = week}:");
-      console.log(this.html.current.parentNode.cdata);
       this.html.current.parentNode.className = "date-picker-week-row";
     }
   };
@@ -252,8 +241,6 @@ var Calendar =
     }
     if(target.cdata.inMonth === true){
       this.date.setUTCDate(target.cdata.start.getUTCDate());
-      console.log("Row click: new date: " + this.date);
-      console.log("Row is inMonth");
       this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
       this.updateSelection(target.children[0]);
     }
@@ -275,8 +262,6 @@ var Calendar =
   };
 
   Calendar.prototype.notify = function (e) {
-    console.log("Calendar.proto.notify:");
-    console.log(e);
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
@@ -288,7 +273,6 @@ var Calendar =
           }
         case Events.desc.update.cal:
           if(e.data.date !== undefined && e.data.date instanceof Date){
-            console.log("New Date:" + e.data.date);
             this.setDate(e.data.date);
           }
           this.updateCalendarHTML();

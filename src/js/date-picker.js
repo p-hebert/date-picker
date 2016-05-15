@@ -224,11 +224,18 @@
   };
 
   DatePicker.prototype.subscribe = function () {
-    for(var key in this.partials){
-      this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials[key]);
-      this.mediator.subscribe(this.mediation.events.broadcast[key], this.partials[key]);
-      this.partials[key].subscribe(this);
-    }
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.week);
+    //this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.month);
+    //this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.dupdate, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
+    //this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
+    //this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
+    this.partials.day.subscribe(this);
+    this.partials.week.subscribe(this);
+    //this.partials.month.subscribe(this);
+    //this.partials.year.subscribe(this);
   };
 
   /**
