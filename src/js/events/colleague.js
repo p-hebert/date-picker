@@ -1,10 +1,19 @@
 var Colleague = (function(){
-  function Colleague(mediator){
+  function Colleague(mediator, component){
     this.mediator = mediator;
     this.callbacks = {};
+    this.mediator.register(this);
+    this.mediation.component = component;
+    this.mediation.events = {
+      broadcast:{ gupdate: this._constructEventString(Events.scope.broadcast, Events.desc.update.global) },
+      emit: { gupdate: this._constructEventString(Events.scope.emit, Events.desc.update.global) }
+    };
   }
 
   Colleague.prototype.constructor = Colleague;
+
+  //Component for Event Strings
+  Colleague.prototype.component = 'COLLEAGUE';
 
   Colleague.prototype.enum = {
     callbacks: {
@@ -37,12 +46,33 @@ var Colleague = (function(){
   };
 
   Colleague.prototype.emit = function (eventStr, data) {
-    this.mediator.notify(eventStr, this, data);
-    this.callCallback(Colleague.prototype.enum.callbacks.emit, {name: eventStr, source: this, data: data});
+    var e = {
+          name: eventStr,
+          source: this.mediation.component + ':' + this.mediation.uuid,
+          data: data
+        };
+
+    if(eventStr.indexOf(Events.scope.emit) !== -1){
+      e.scope = Events.scope.emit;
+    }else if(eventStr.indexOf(Events.scope.broadcast) !== -1){
+      e.scope = Events.scope.broadcast;
+    }
+    var desc = eventStr, index = desc.indexOf('_');
+    while(index !== -1){
+        desc = desc.substring(index+1);
+        index = desc.indexOf('_');
+    }
+    e.desc = desc;
+    this.mediator.notify(this, e);
+    this.callCallback(Colleague.prototype.enum.callbacks.emit, e);
   };
 
   Colleague.prototype.notify = function (e) {
     this.callCallback(Colleague.prototype.enum.callbacks.notify, e);
+  };
+
+  Colleague.prototype._constructEventString = function (scope, desc) {
+    return this.mediation.component + ':' + this.mediation.uuid + '_' + scope + '_' + desc;
   };
 
   return Colleague;

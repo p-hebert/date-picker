@@ -1,6 +1,7 @@
 (function(){
 
   //=include ./events/events.js
+  //=include ./events/mutex.js
   //=include ./events/colleague.js
   //=include ./events/mediator.js
   //=include ./utilities/date-utils.js
@@ -12,35 +13,59 @@
   //=include ./components/sliders/month-increment-slider.js
   //=include ./components/partial.js
 
-
   function DatePicker(options){
     //super()
-    Colleague.call(this, new Mediator());
+    Colleague.call(this, new Mediator(), DatePicker.prototype.component);
+    this.mediation.events.broadcast.dupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.day);
+    this.mediation.events.broadcast.wupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.week);
+    this.mediation.events.broadcast.mupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.month);
+    this.mediation.events.broadcast.yupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.year);
+
     if(options === undefined){
       options = this.deepCopyObject(DatePicker.prototype.defaults);
     }else{
       options = Object.assign(this.deepCopyObject(DatePicker.prototype.defaults), this.deepCopyObject(options));
     }
     options.mediator = this.mediator;
-    console.log(options);
-
+    this.context = options.parent;
 
     this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined)? options.scale : DatePicker.prototype.defaults.scale;
-    this.date = options.date instanceof Date ? options.date : new Date();
-    this.context = options.parent;
+
+    this.min_date = options.min_date instanceof Date ?
+                    options.min_date :
+                    undefined;
+    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
+                    options.max_date :
+                    undefined;
+    this.date = options.date instanceof Date && options.date >= this.min_date && options.date <= this.max_date ?
+                options.date : undefined;
+    if(this.date === undefined){
+      if(this.min_date){
+        this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
+        options.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
+      }else if(this.max_date){
+        this.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
+        options.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
+      }else{
+        this.date = new Date();
+        options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+      }
+    }
 
     //Setting up the partials
     this.partials = {};
-    options.scale = this.scale;
     options.value = options.date;
+    options.scale = DatePicker.prototype.enum.scales.day;
     this.partials.day = new Partial(options);
-    /*options.scale = DatePicker.prototype.enum.scale.week;
+    options.scale = DatePicker.prototype.enum.scales.week;
     this.partials.week = new Partial(options);
-    options.scale = DatePicker.prototype.enum.scale.month;
+    /*options.scale = DatePicker.prototype.enum.scales.month;
     this.partials.month = new Partial(options);
-    options.scale = DatePicker.prototype.enum.scale.year;
+    options.scale = DatePicker.prototype.enum.scales.year;
     this.partials.year = new Partial(options);*/
 
+    //Subscribe all partials to global events
+    this.subscribe();
     //Generating markup and appending to DOM
     this.generateSVG(options.icons);
     this.generateHTML();
@@ -53,9 +78,19 @@
   //Binding the constructor to the prototype
   DatePicker.prototype.constructor = Colleague;
 
-  //Creating a parent property (like super in Java)
-  //Allows to call overriden properties
-  DatePicker.prototype.parent = Colleague.prototype;
+  //Binding all Types to the namespace (for retrieval by external programmers)
+  DatePicker.prototype.Partial = Partial;
+  DatePicker.prototype.Calendar = Calendar;
+  DatePicker.prototype.IncrementSlider = IncrementSlider;
+  DatePicker.prototype.MonthIncrementSlider = MonthIncrementSlider;
+  DatePicker.prototype.YearIncrementSlider = YearIncrementSlider;
+  DatePicker.prototype.Colleague = Colleague;
+  DatePicker.prototype.Mediator = Mediator;
+  DatePicker.prototype.DateUtils = DateUtils;
+  DatePicker.prototype.NumberUtils = NumberUtils;
+  DatePicker.prototype.UUIDUtils = UUIDUtils;
+
+  DatePicker.prototype.component = 'DATEPICKER';
 
   DatePicker.prototype.defaults = {
     date: new Date(),
@@ -76,28 +111,39 @@
       week : "week",
       month : "month",
       year : "year"
-    },
-    events: Events
+    }
   };
 
-  //Binding all Types to the namespace (for retrieval by external programmers)
-  DatePicker.prototype.Partial = Partial;
-  DatePicker.prototype.Calendar = Calendar;
-  DatePicker.prototype.IncrementSlider = IncrementSlider;
-  DatePicker.prototype.MonthIncrementSlider = MonthIncrementSlider;
-  DatePicker.prototype.YearIncrementSlider = YearIncrementSlider;
-  DatePicker.prototype.Colleague = Colleague;
-  DatePicker.prototype.Mediator = Mediator;
-  DatePicker.prototype.DateUtils = DateUtils;
-  DatePicker.prototype.NumberUtils = NumberUtils;
-  DatePicker.prototype.UUIDUtils = UUIDUtils;
+  DatePicker.prototype.setDate = function (date) {
+    if(date !== undefined && date instanceof Date && date >= this.min_date && date <= this.max_date){
+      this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      this.emit(this.mediation.events.gupdate, {date: date});
+      return true;
+    }
+    return false;
+  };
 
+  DatePicker.prototype.setMinDate = function (date) {
+    if(date !== undefined && date instanceof Date && date < this.max_date){
+      this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      this.emit(this.mediation.events.gupdate, {min_date: date});
+      return true;
+    }
+    return false;
+  };
+
+  DatePicker.prototype.setMaxDate = function (date) {
+    if(date !== undefined && date instanceof Date && date > this.min_date){
+      this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      this.emit(this.mediation.events.gupdate, {max_date: date});
+      return true;
+    }
+    return false;
+  };
 
   DatePicker.prototype.generateHTML = function () {
     var container = document.createElement('div');
     container.className = "date-picker-body";
-    console.log(this.partials);
-    console.log(this.scale);
     container.appendChild(this.partials[this.scale].getHTML());
     this.html = container;
 
@@ -173,6 +219,49 @@
     }else{
       for(var k = 0 ; k < elements.length ; k++){
         this.svg.appendChild(elements[k]);
+      }
+    }
+  };
+
+  DatePicker.prototype.subscribe = function () {
+    for(var key in this.partials){
+      this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials[key]);
+      this.mediator.subscribe(this.mediation.events.broadcast[key], this.partials[key]);
+      this.partials[key].subscribe(this);
+    }
+  };
+
+  /**
+  * @override
+  **/
+  DatePicker.prototype.notify = function (e) {
+    if(e.scope === Events.scope.emit){
+      switch(e.desc){
+        case Events.desc.update.day:
+          this.emit(this.mediation.events.broadcast.wupdate, e.data);
+          this.emit(this.mediation.events.broadcast.mupdate, e.data);
+          this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          break;
+        case Events.desc.update.week:
+          this.emit(this.mediation.events.broadcast.dupdate, e.data);
+          this.emit(this.mediation.events.broadcast.mupdate, e.data);
+          this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          break;
+        case Events.desc.update.month:
+          this.emit(this.mediation.events.broadcast.dupdate, e.data);
+          this.emit(this.mediation.events.broadcast.wupdate, e.data);
+          this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          break;
+        case Events.desc.update.year:
+          this.emit(this.mediation.events.broadcast.dupdate, e.data);
+          this.emit(this.mediation.events.broadcast.wupdate, e.data);
+          this.emit(this.mediation.events.broadcast.mupdate, e.data);
+          break;
+        default:
+          break;
+      }
+      if(e.data.date instanceof Date){
+        this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
       }
     }
   };

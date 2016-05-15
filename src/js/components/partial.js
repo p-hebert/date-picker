@@ -1,9 +1,13 @@
 var Partial = (function(){
 
-  function Partial(options){
+  function Partial(options, parent){
     //super()
-    Colleague.call(this, options.mediator);
-
+    Colleague.call(this, options.mediator, Partial.prototype.component);
+    this.mediation.events.broadcast.pupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.partial);
+    this.mediation.events.broadcast.cupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.cal);
+    this.mediation.events.broadcast.mupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.mis);
+    this.mediation.events.broadcast.yupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.yis);
+    this.mediation.events.emit.pupdate = this._constructEventString(Events.scope.emit, Events.desc.update[options.scale]);
     //Date that is modified by the user
     this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
 
@@ -17,9 +21,7 @@ var Partial = (function(){
 
     //UI components of which the Partial is comprised.
     this.components = {};
-
     this.generateHTML(options);
-    this.register();
   }
 
   //Binding the prototype of the Parent object
@@ -29,9 +31,8 @@ var Partial = (function(){
   //Binding the constructor to the prototype
   Partial.prototype.constructor = Colleague;
 
-  //Creating a parent property (like super in Java)
-  //Allows to call overriden properties
-  Partial.prototype.parent = Colleague.prototype;
+  //Component for Event Strings
+  Partial.prototype.component = 'PARTIAL';
 
   Partial.prototype.enum = {
     scales: {
@@ -50,22 +51,8 @@ var Partial = (function(){
     this.date.setUTCFullYear(this.prev_date.getUTCFullYear());
     this.date.setUTCMonth(this.prev_date.getUTCMonth());
     this.date.setUTCDate(this.prev_date.getUTCDate());
-    switch(this.scale){
-      case Partial.prototype.enum.scales.day:
-      case Partial.prototype.enum.scales.week:
-        this.emit(Events.masterupdate.mis, {date: this.date});
-        this.emit(Events.masterupdate.yis, {date: this.date});
-        this.emit(Events.masterupdate.cal, {date: this.date});
-        break;
-      case Partial.prototype.enum.scales.month:
-        //TODO
-        break;
-      case Partial.prototype.enum.scales.year:
-        //TODO
-        break;
-      default:
-        break;
-    }
+    var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+    this.emit(this.mediation.events.broadcast.pupdate, {date: date});
   };
 
   Partial.prototype.commit = function () {
@@ -73,40 +60,6 @@ var Partial = (function(){
     this.prev_date.setUTCMonth(this.date.getUTCMonth());
     this.prev_date.setUTCDate(this.date.getUTCDate());
   };
-
-  // Partial.prototype.uiApply = function(scale) {
-  //   var val, uuid;
-  //   if(scale === undefined){
-  //     var updateCal = false;
-  //     if(this.uidate.getUTCFullYear() !== this.date.getUTCFullYear()){
-  //       this.uiApply(Partial.prototype.scales.year);
-  //       updateCal = true;
-  //       this.uidate.setUTCFullYear(this.date.getUTCFullYear());
-  //       this.uidate.setUTCDate(this.date.getUTCDate());
-  //     }
-  //     if(this.uidate.getUTCMonth() !== this.date.getUTCMonth()){
-  //       this.uiApply(Partial.prototype.scales.month);
-  //       updateCal = true;
-  //       this.uidate.setUTCMonth(this.date.getUTCMonth());
-  //       this.uidate.setUTCDate(this.date.getUTCDate());
-  //     }
-  //     if(this.uidate.getUTCDate() !== this.date.getUTCDate()){
-  //       this.uiApply(Partial.prototype.scales.day);
-  //       this.uidate.setUTCDate(this.date.getUTCDate());
-  //     }
-  //     if(updateCal){
-  //       this.updateCalendarHTML();
-  //     }
-  //   }else{
-  //     for(uuid in this.uicallbacks[scale]){
-  //       val = this.uicallbacks[scale][uuid];
-  //       if(val.status === Partial.prototype.statuses.active){
-  //         val.function.call(this);
-  //       }
-  //     }
-  //   }
-  // };
-
 
   Partial.prototype.generateHTML = function(options){
     switch(this.scale){
@@ -157,16 +110,22 @@ var Partial = (function(){
 
   };
 
-  Partial.prototype.register = function () {
+  Partial.prototype.subscribe = function (parent) {
+    if(parent !== undefined){
+      this.mediator.subscribe(this.mediation.events.emit.pupdate, parent);
+    }
     switch(this.scale){
       case Partial.prototype.enum.scales.day:
       case Partial.prototype.enum.scales.week:
-        this.mediator.register(Events.masterupdate.yis, this.components.yinput);
-        this.mediator.register(Events.masterupdate.mis, this.components.minput);
-        this.mediator.register(Events.masterupdate.cal, this.components.calendar);
-        this.mediator.register(Events.slaveupdate.mis, this);
-        this.mediator.register(Events.slaveupdate.yis, this);
-        this.mediator.register(Events.slaveupdate.cal, this);
+        this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.yinput);
+        this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.minput);
+        this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.calendar);
+        this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.components.yinput);
+        this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.components.minput);
+        this.mediator.subscribe(this.mediation.events.broadcast.cupdate, this.components.calendar);
+        this.components.yinput.subscribe(this);
+        this.components.minput.subscribe(this);
+        this.components.calendar.subscribe(this);
         break;
       case Partial.prototype.enum.scales.month:
         //TODO
@@ -183,31 +142,36 @@ var Partial = (function(){
   * @override
   **/
   Partial.prototype.notify = function (e) {
-    switch(e.name){
-      case Events.slaveupdate.mis:
-        if(this.scale === Partial.prototype.enum.scales.day || this.scale === Partial.prototype.enum.scales.week){
-          this.emit(Events.masterupdate.yis, e.data);
-          this.emit(Events.masterupdate.cal, e.data);
+      if(e.scope === Events.scope.emit){
+        switch(e.desc){
+          case Events.desc.update.mis:
+            this.emit(this.mediation.events.broadcast.yupdate, e.data);
+            this.emit(this.mediation.events.broadcast.cupdate, e.data);
+            break;
+          case Events.desc.update.yis:
+            this.emit(this.mediation.events.broadcast.mupdate, e.data);
+            this.emit(this.mediation.events.broadcast.cupdate, e.data);
+            break;
+          case Events.desc.update.cal:
+            this.emit(this.mediation.events.broadcast.mupdate, e.data);
+            this.emit(this.mediation.events.broadcast.yupdate, e.data);
+            break;
         }
-        break;
-      case Events.slaveupdate.yis:
-        if(this.scale === Partial.prototype.enum.scales.day || this.scale === Partial.prototype.enum.scales.week){
-          this.emit(Events.masterupdate.mis, e.data);
-          this.emit(Events.masterupdate.cal, e.data);
-        }else if(this.scale === Partial.prototype.enum.scales.month){
-          //TODO: determine which events must be sent
+        this.emit(this.mediation.events.emit.pupdate, e.data);
+      }else if (e.scope === Events.scope.broadcast){
+        this.emit(this.mediation.events.broadcast.pupdate, e.data);
+        if(e.data.min_date !== undefined && e.data.date instanceof Date){
+          this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
         }
-        break;
-      case Events.slaveupdate.cal:
-        if(this.scale === Partial.prototype.enum.scales.day || this.scale === Partial.prototype.enum.scales.week){
-          this.emit(Events.masterupdate.yis, e.data);
-          this.emit(Events.masterupdate.mis, e.data);
+        if(e.data.max_date !== undefined && e.data.date instanceof Date){
+          this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
         }
-        break;
-      //TODO: Add other cases for the other scales
-      default:
-        break;
-    }
+      }
+
+      if(e.data.date !== undefined && e.data.date instanceof Date){
+        this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
+      }
+
     this.constructor.prototype.notify.call(this, e);
   };
 

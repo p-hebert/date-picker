@@ -1,7 +1,8 @@
 var IncrementSlider = (function(){
-  function IncrementSlider(options){
+  function IncrementSlider(options, component){
     //super()
-    Colleague.call(this, options.mediator);
+    component = component === undefined? IncrementSlider.prototype.component : component;
+    Colleague.call(this, options.mediator, component);
     this.min_value = options.min_value;
     this.max_value = options.max_value;
     this.value = options.value;
@@ -13,6 +14,9 @@ var IncrementSlider = (function(){
 
   //Binding the constructor to the prototype
   IncrementSlider.prototype.constructor = Colleague;
+
+  //Component for Event Strings
+  IncrementSlider.prototype.component = 'INCSLIDER';
 
   IncrementSlider.prototype.enum = {
     callbacks: {
@@ -101,6 +105,13 @@ var IncrementSlider = (function(){
 
   IncrementSlider.prototype.testMax = function(){
     return this.max_value !== undefined && this.max_value == this.getValue();
+  };
+
+  IncrementSlider.prototype.subscribe = function (parent) {
+    if(parent !== undefined){
+      this.mediator.subscribe(this.mediation.events.eupdate, parent);
+      this.mediator.subscribe(this.mediation.events.edata, parent);
+    }
   };
 
   return IncrementSlider;

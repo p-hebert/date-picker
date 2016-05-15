@@ -1,17 +1,19 @@
 var Events = {
-  dataupdate: "dataupdate",
-  masterupdate: {
-    mis: "mismasterupdate",
-    yis: "yismasterupdate",
-    cal: "calmasterupdate"
+  scope: {
+    broadcast: "BROADCAST",
+    emit: "EMIT"
   },
-  slaveupdate: {
-    mis: "misslaveupdate",
-    yis: "yisslaveupdate",
-    cal: "calslaveupdate"
-  },
-  day: "day",
-  week: "week",
-  month: "month",
-  year: "year"
+  desc: {
+    update: {
+      global: "UPDATE",
+      day: "DAYSCALEUPDATE",
+      week: "WEEKSCALEUPDATE",
+      month: "YEARSCALEUPDATE",
+      year: "YEARSCALEUPDATE",
+      partial: "PARTIALUPDATE",
+      mis: "MISUPDATE",
+      yis: "YISUPDATE",
+      cal: "CALUPDATE",
+    }
+  }
 };

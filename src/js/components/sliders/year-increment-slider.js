@@ -1,7 +1,9 @@
 var YearIncrementSlider = (function(){
-  function YearIncrementSlider(options){
+  function YearIncrementSlider(options, component){
     //super()
-    IncrementSlider.call(this, options);
+    component = component === undefined? YearIncrementSlider.prototype.component : component;
+    IncrementSlider.call(this, options, component);
+    this.mediation.events.emit.yupdate = this._constructEventString(Events.scope.emit, Events.desc.update.yis);
     this.date = this.value;
     this.min_date = this.min_value;
     this.max_date = this.max_value;
@@ -14,6 +16,9 @@ var YearIncrementSlider = (function(){
 
   //Binding the constructor to the prototype
   YearIncrementSlider.prototype.constructor = IncrementSlider;
+
+  //Component for Event Strings
+  YearIncrementSlider.prototype.component = 'YINCSLIDER';
 
   /**
   * @override
@@ -76,7 +81,7 @@ var YearIncrementSlider = (function(){
       }
       this.setValue(this.date);
       this.updateUIControls();
-      this.emit(Events.slaveupdate.yis, {date: this.date});
+      this.emit(this.mediation.events.emit.yupdate, {date: this.date});
       IncrementSlider.prototype.onPrevClick.call(this);
     }
     //else do nothing
@@ -113,25 +118,42 @@ var YearIncrementSlider = (function(){
 
       this.setValue(this.date);
       this.updateUIControls();
-      this.emit(Events.slaveupdate.yis, {date: this.date});
+      this.emit(this.mediation.events.emit.yupdate, {date: this.date});
       IncrementSlider.prototype.onNextClick.call(this);
     }
     //else do nothing
+  };
+
+  YearIncrementSlider.prototype.subscribe = function (parent) {
+    if(parent !== undefined){
+      this.mediator.subscribe(this.mediation.events.emit.yupdate, parent);
+    }
   };
 
   /**
   * @override
   **/
   YearIncrementSlider.prototype.notify = function (e) {
-    switch(e.name){
-      case Events.masterupdate.yis:
-        this.setValue(e.data.date);
-        this.updateUIControls();
-        break;
-      default:
-        break;
+    if(e.scope === Events.scope.broadcast){
+      switch(e.desc){
+        case Events.desc.update.partial:
+          if(e.data.min_date !== undefined && e.data.date instanceof Date){
+            this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+          }
+          if(e.data.max_date !== undefined && e.data.date instanceof Date){
+            this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+          }
+        case Events.desc.update.yis:
+          if(e.data.date !== undefined && e.data.date instanceof Date){
+            this.setValue(e.data.date);
+          }
+          this.updateUIControls();
+          break;
+        default:
+          break;
+      }
     }
-    Colleague.prototype.notify.call(this, e);
+    IncrementSlider.prototype.notify.call(this, e);
   };
 
   return YearIncrementSlider;

@@ -1,13 +1,19 @@
 var Calendar =
 (function(){
 
-  function Calendar(options){
+  function Calendar(options, component){
     //super()
-    Colleague.call(this, options.mediator);
+    component = component === undefined? Calendar.prototype.component : component;
+    Colleague.call(this, options.mediator, component);
+    this.mediation.events.emit.cupdate = this._constructEventString(Events.scope.emit, Events.desc.update.cal);
 
     //Upper/Lower bounds to date value
-    this.max_date = options.max_date;
-    this.min_date = options.min_date;
+    this.min_date = options.min_date instanceof Date ?
+                    new Date(options.min_date.getUTCFullYear(), options.min_date.getUTCMonth(), options.min_date.getUTCDate()) :
+                    undefined;
+    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
+                    new Date(options.max_date.getUTCFullYear(), options.max_date.getUTCMonth(), options.max_date.getUTCDate()) :
+                    undefined;
 
     //Date that is modified by the user
     this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
@@ -27,6 +33,9 @@ var Calendar =
 
   //Binding the constructor to the prototype
   Calendar.prototype.constructor = Colleague;
+
+  //Component for Event Strings
+  Calendar.prototype.component = 'CALENDAR';
 
   Calendar.prototype.enum = {
     scales: {
@@ -145,6 +154,9 @@ var Calendar =
           day: day > daysInMonth ? day - daysInMonth : day,
           month: day > daysInMonth ? this.date.getUTCMonth()+1 : this.date.getUTCMonth()
         };
+        //Default class
+        span.className = "date-picker-day-cell";
+
         //If greater than daysInMonth, the date is in next month and should be disabled.
         if(day > daysInMonth){
           span.className = "date-picker-day-cell disabled";
@@ -156,8 +168,6 @@ var Calendar =
             row.className = "date-picker-week-row active";
             calendar.current = span;
           }
-        }else{
-          span.className = "date-picker-day-cell";
         }
         span.innerHTML = span.cdata.day;
         if(this.scale === Calendar.prototype.enum.scales.day){
@@ -216,11 +226,14 @@ var Calendar =
     }
   };
 
-  Calendar.prototype.onRowClick = function (row) {
-    if(row.cdata.inMonth === true){
-      this.date.setUTCDate(row.cdata.start.getUTCDate());
-      this.emit(Events.slaveupdate.cal, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-      this.updateSelection(row.children[0]);
+  Calendar.prototype.onRowClick = function (target) {
+    if(target.className.indexOf("date-picker-day-cell") !== -1){
+      target = target.parentNode;
+    }
+    if(target.cdata.inMonth === true){
+      this.date.setUTCDate(target.cdata.start.getUTCDate());
+      this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+      this.updateSelection(target.children[0]);
     }
   };
 
@@ -228,23 +241,38 @@ var Calendar =
     var daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth());
     if(span.cdata.selectable === true && span.cdata.day <= daysInMonth && span.cdata.day > 0){
       this.date.setUTCDate(span.cdata.day);
-      this.emit(Events.slaveupdate.cal, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+      this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
       this.updateSelection(span);
     }
   };
 
-  Calendar.prototype.emit = function (eventStr, data) {
-    this.mediator.notify(eventStr, this, data);
+  Calendar.prototype.subscribe = function (parent) {
+    console.log("Calendar subscribes parent");
+    if(parent !== undefined){
+      console.log(this.mediation.events.emit.cupdate);
+      this.mediator.subscribe(this.mediation.events.emit.cupdate, parent);
+    }
   };
 
   Calendar.prototype.notify = function (e) {
-    switch(e.name){
-      case Events.masterupdate.cal:
-        this.setDate(e.data.date);
-        this.updateCalendarHTML();
-        break;
-      default:
-        break;
+    if(e.scope === Events.scope.broadcast){
+      switch(e.desc){
+        case Events.desc.update.partial:
+          if(e.data.min_date !== undefined && e.data.date instanceof Date){
+            this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+          }
+          if(e.data.max_date !== undefined && e.data.date instanceof Date){
+            this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+          }
+        case Events.desc.update.cal:
+          if(e.data.date !== undefined && e.data.date instanceof Date){
+            this.setDate(e.data.date);
+          }
+          this.updateCalendarHTML();
+          break;
+        default:
+          break;
+      }
     }
     this.constructor.prototype.notify.call(this, e);
   };
