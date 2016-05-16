@@ -8,12 +8,15 @@ var Events = {
       global: "UPDATE",
       day: "DAYSCALEUPDATE",
       week: "WEEKSCALEUPDATE",
-      month: "YEARSCALEUPDATE",
+      month: "MONTHSCALEUPDATE",
       year: "YEARSCALEUPDATE",
       partial: "PARTIALUPDATE",
+      bis: "INCSLIDERUPDATE",
       mis: "MISUPDATE",
       yis: "YISUPDATE",
       cal: "CALUPDATE",
+      mdi: "MDIALER",
+      ydi: "YDIALER"
     }
   }
 };

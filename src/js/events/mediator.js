@@ -79,11 +79,13 @@ var Mediator = (function(){
   };
 
   Mediator.prototype.notify = function (source, e) {
+    //console.log("Mediator.prototype.notify - forwarding\n" + e.name + "\nto:");
     this._checkType(source);
     var success = true;
     if(source.mediation !== undefined && source.mediation.uuid !== undefined &&
        this.subscriptions[e.name] !== undefined){
       for(var i = 0 ; i < this.subscriptions[e.name].length; i++){
+        //console.log(this.subscribers[this.subscriptions[e.name][i]].sub.mediation.component + ':' + this.subscribers[this.subscriptions[e.name][i]].sub.mediation.uuid + " {"+this.subscribers[this.subscriptions[e.name][i]].sub.scale+"}");
         this.subscribers[this.subscriptions[e.name][i]].sub.notify(e);
       }
     }else{

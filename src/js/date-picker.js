@@ -8,6 +8,7 @@
   //=include ./utilities/number-utils.js
   //=include ./utilities/uuid-utils.js
   //=include ./components/calendar/calendar.js
+  //=include ./components/dialer/dialer.js
   //=include ./components/sliders/increment-slider.js
   //=include ./components/sliders/year-increment-slider.js
   //=include ./components/sliders/month-increment-slider.js
@@ -59,8 +60,8 @@
     this.partials.day = new Partial(options);
     options.scale = DatePicker.prototype.enum.scales.week;
     this.partials.week = new Partial(options);
-    /*options.scale = DatePicker.prototype.enum.scales.month;
-    this.partials.month = new Partial(options);
+    options.scale = DatePicker.prototype.enum.scales.month;
+    this.partials.month = new Partial(options);/*
     options.scale = DatePicker.prototype.enum.scales.year;
     this.partials.year = new Partial(options);*/
 
@@ -226,15 +227,15 @@
   DatePicker.prototype.subscribe = function () {
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.week);
-    //this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.month);
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.month);
     //this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.year);
     this.mediator.subscribe(this.mediation.events.broadcast.dupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
-    //this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
+    this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
     //this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
     this.partials.day.subscribe(this);
     this.partials.week.subscribe(this);
-    //this.partials.month.subscribe(this);
+    this.partials.month.subscribe(this);
     //this.partials.year.subscribe(this);
   };
 

@@ -213,7 +213,7 @@ var Calendar =
       }else{
         this.newSelection(span);
       }
-    }else console.log("Same day");
+    }
   };
 
   Calendar.prototype.newSelection = function (span) {
