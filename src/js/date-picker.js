@@ -12,6 +12,7 @@
   //=include ./components/sliders/increment-slider.js
   //=include ./components/sliders/year-increment-slider.js
   //=include ./components/sliders/month-increment-slider.js
+  //=include ./components/sliders/ydialer-increment-slider.js
   //=include ./components/partial.js
 
   function DatePicker(options){
@@ -61,9 +62,9 @@
     options.scale = DatePicker.prototype.enum.scales.week;
     this.partials.week = new Partial(options);
     options.scale = DatePicker.prototype.enum.scales.month;
-    this.partials.month = new Partial(options);/*
+    this.partials.month = new Partial(options);
     options.scale = DatePicker.prototype.enum.scales.year;
-    this.partials.year = new Partial(options);*/
+    this.partials.year = new Partial(options);
 
     //Subscribe all partials to global events
     this.subscribe();
@@ -228,15 +229,15 @@
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.month);
-    //this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.year);
     this.mediator.subscribe(this.mediation.events.broadcast.dupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
-    //this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
     this.partials.day.subscribe(this);
     this.partials.week.subscribe(this);
     this.partials.month.subscribe(this);
-    //this.partials.year.subscribe(this);
+    this.partials.year.subscribe(this);
   };
 
   /**

@@ -3,6 +3,7 @@ var IncrementSlider = (function(){
     //super()
     component = component === undefined? IncrementSlider.prototype.component : component;
     Colleague.call(this, options.mediator, component);
+    this.mediation.events.emit.bupdate = this._constructEventString(Events.scope.emit, Events.desc.update.bis);
     this.min_value = options.min_value;
     this.max_value = options.max_value;
     this.value = options.value;
@@ -109,8 +110,8 @@ var IncrementSlider = (function(){
 
   IncrementSlider.prototype.subscribe = function (parent) {
     if(parent !== undefined){
-      this.mediator.subscribe(this.mediation.events.eupdate, parent);
-      this.mediator.subscribe(this.mediation.events.edata, parent);
+      this.mediator.subscribe(this.mediation.events.emit.gupdate, parent);
+      this.mediator.subscribe(this.mediation.events.emit.bupdate, parent);
     }
   };
 

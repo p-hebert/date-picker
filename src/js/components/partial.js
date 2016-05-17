@@ -111,12 +111,12 @@ var Partial = (function(){
       wrapper.appendChild(this.components.yinput.getHTML());
       wrapper.appendChild(this.components.mdialer.getHTML());
     }else if(this.scale === Partial.prototype.enum.scales.year){
-      options.value = "FinancialYear";
-      this.components.binput = new IncrementSlider(options);
+      options.value = "Financial Year";
+      this.components.ydinput = new YDialerIncrementSlider(options);
       this.components.ydialer = new Dialer(options);
       container.className = "date-picker-mode-year active";
       wrapper.className = "date-picker-content-wrapper";
-      wrapper.appendChild(this.components.binput.getHTML());
+      wrapper.appendChild(this.components.ydinput.getHTML());
       wrapper.appendChild(this.components.ydialer.getHTML());
     }
 
@@ -138,7 +138,7 @@ var Partial = (function(){
         break;
       case Partial.prototype.enum.scales.year:
         this.mediation.events.broadcast.dupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.ydi);
-        this.mediation.events.broadcast.bupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.bis);
+        this.mediation.events.broadcast.ydupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.yds);
         break;
       default:
         break;
@@ -173,12 +173,12 @@ var Partial = (function(){
         this.components.mdialer.subscribe(this);
         break;
       case Partial.prototype.enum.scales.year:
-        this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.binput);
+        this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.ydinput);
         this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.ydialer);
-        this.mediator.subscribe(this.mediation.events.broadcast.bupdate, this.components.binput);
+        this.mediator.subscribe(this.mediation.events.broadcast.ydupdate, this.components.ydinput);
         this.mediator.subscribe(this.mediation.events.broadcast.dupdate, this.components.ydialer);
-        this.components.yinput.subscribe(this);
-        this.components.mdialer.subscribe(this);
+        this.components.ydinput.subscribe(this);
+        this.components.ydialer.subscribe(this);
         break;
       default:
         break;
@@ -243,10 +243,10 @@ var Partial = (function(){
         case Partial.prototype.enum.scales.year:
           switch(e.desc){
             case Events.desc.update.ydi:
-              this.emit(this.mediation.events.broadcast.bupdate, e.data);
+              this.emit(this.mediation.events.broadcast.ydupdate, e.data);
               break;
-            case Events.desc.update.bis:
-              this.emit(this.mediation.events.broadcast.yupdate, e.data);
+            case Events.desc.update.yds:
+              this.emit(this.mediation.events.broadcast.dupdate, e.data);
               break;
             default:
               break;

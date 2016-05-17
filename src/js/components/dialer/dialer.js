@@ -29,6 +29,7 @@ var Dialer = (function(){
     this.dialers = [];
     this.indexes = [];
     this.index = 0;
+    this.generateInitialMax();
     this.html = this.getDialerHTML();
   }
 
@@ -84,6 +85,12 @@ var Dialer = (function(){
       this.updateSelection();
   };
 
+  Dialer.prototype.generateInitialMax = function () {
+    var medianyear = this.date.getUTCFullYear(),
+        factor = (8 - NumberUtils.mod(medianyear, 8));
+    this.init_max = factor === 8? medianyear : medianyear + factor;
+  };
+
   Dialer.prototype.generateHTML = function () {
     var self = this,
         i = 0,
@@ -108,7 +115,7 @@ var Dialer = (function(){
         span = document.createElement('span');
         span.ddata = {
           //TODO: to review
-          year : new Date().getUTCFullYear() + this.index*8 - i
+          year : this.init_max - i + this.index*8
         };
         span.innerHTML = span.ddata.year;
         this.applyClass(span, dialer);
@@ -154,15 +161,15 @@ var Dialer = (function(){
   Dialer.prototype.updateSelection = function (span) {
     var dialer = this.html,
         date = {year : this.date.getUTCFullYear(), month : this.date.getUTCMonth()};
-    if(dialer.current.ddata[this.scale] !== date[this.scale]){
+    if(dialer.current !== undefined && dialer.current.ddata[this.scale] !== date[this.scale]){
       this.removeSelection();
-      if(span === undefined){
-        for (var i = 0; i < this.html.children.length; i++) {
-          this.applyClass(this.html.children[i]);
-        }
-      }else{
-        this.applyClass(span);
+    }
+    if(span === undefined){
+      for (var i = 0; i < this.html.children.length; i++) {
+        this.applyClass(this.html.children[i]);
       }
+    }else{
+      this.applyClass(span);
     }
   };
 
@@ -188,10 +195,12 @@ var Dialer = (function(){
   };
 
   Dialer.prototype.removeSelection = function () {
-    if(this.scale === Dialer.prototype.enum.scales.month){
-      this.html.current.className = "date-picker-month-cell";
-    }else if (this.scale === Dialer.prototype.enum.scales.year){
-      this.html.current.className = "date-picker-year-cell";
+    if(this.html.current !== undefined){
+      if(this.scale === Dialer.prototype.enum.scales.month){
+        this.html.current.className = "date-picker-month-cell";
+      }else if (this.scale === Dialer.prototype.enum.scales.year){
+        this.html.current.className = "date-picker-year-cell";
+      }
     }
   };
 
