@@ -149,6 +149,12 @@ var YearIncrementSlider = (function(){
           }
           this.updateUIControls();
           break;
+        case Events.desc.request.decrement.year:
+          this.onPrevClick();
+          break;
+        case Events.desc.request.increment.year:
+          this.onNextClick();
+          break;
         default:
           break;
       }

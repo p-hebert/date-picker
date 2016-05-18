@@ -13,15 +13,13 @@
   //=include ./components/sliders/year-increment-slider.js
   //=include ./components/sliders/month-increment-slider.js
   //=include ./components/sliders/ydialer-increment-slider.js
+  //=include ./components/controls/picker-controls.js
   //=include ./components/partial.js
 
   function DatePicker(options){
     //super()
     Colleague.call(this, new Mediator(), DatePicker.prototype.component);
-    this.mediation.events.broadcast.dupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.day);
-    this.mediation.events.broadcast.wupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.week);
-    this.mediation.events.broadcast.mupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.month);
-    this.mediation.events.broadcast.yupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.year);
+    this.generateEvents();
 
     if(options === undefined){
       options = this.deepCopyObject(DatePicker.prototype.defaults);
@@ -31,7 +29,8 @@
     options.mediator = this.mediator;
     this.context = options.parent;
 
-    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined)? options.scale : DatePicker.prototype.defaults.scale;
+    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined)?
+                  options.scale : DatePicker.prototype.defaults.scale;
 
     this.min_date = options.min_date instanceof Date ?
                     options.min_date :
@@ -53,6 +52,12 @@
         options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
       }
     }
+    this.lang = options.lang !== undefined &&
+                DatePicker.prototype.enum.languages[options.lang] !== undefined ?
+                DatePicker.prototype.enum.languages[options.lang] : 'en';
+
+    //Setting up the controls
+    this.controls = new PickerControls(options);
 
     //Setting up the partials
     this.partials = {};
@@ -113,6 +118,10 @@
       week : "week",
       month : "month",
       year : "year"
+    },
+    languages: {
+      en: 'en',
+      fr: 'fr'
     }
   };
 
@@ -143,11 +152,54 @@
     return false;
   };
 
+  DatePicker.prototype.changeScale = function(scale){
+    this.scale = DatePicker.prototype.enum.scales[scale] === undefined ?
+                 DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
+    this.body.removeChild(this.body.children[0]);
+    this.body.appendChild(this.partials[this.scale].getHTML());
+  };
+
   DatePicker.prototype.generateHTML = function () {
-    var container = document.createElement('div');
-    container.className = "date-picker-body";
-    container.appendChild(this.partials[this.scale].getHTML());
-    this.html = container;
+    var self = this,
+        callback = function(e){
+          self.onModeBtnClick(e.target);
+        };
+    var datepicker = document.createElement('div');
+    datepicker.className = "date-picker";
+
+    var content = document.createElement('div');
+    content.className = "date-picker-content";
+
+    var moderow = document.createElement('div');
+    moderow.className = "date-picker-mode-button-row";
+
+    var button;
+    for(var key in DatePicker.prototype.enum.scales){
+      button = document.createElement('span');
+      button.scale = key;
+      button.innerHTML = key.charAt(0).toUpperCase() + key.slice(1);
+      button.addEventListener('click', callback);
+      if(this.scale === key){
+        moderow.current = button;
+        button.className = "date-picker-mode-button active";
+      }else{
+        button.className = "date-picker-mode-button";
+      }
+      moderow.appendChild(button);
+    }
+
+    var body = document.createElement('div');
+    body.className = "date-picker-body";
+    body.appendChild(this.partials[this.scale].getHTML());
+
+    content.appendChild(moderow);
+    content.appendChild(body);
+
+    datepicker.appendChild(this.controls.getHTML());
+    datepicker.appendChild(content);
+
+    this.html = datepicker;
+    this.body = body;
 
     //Appending HTML to options.parent
     var parent;
@@ -158,6 +210,15 @@
       parent = this.context;
       parent.appendChild(this.html);
     }
+  };
+
+  DatePicker.prototype.onModeBtnClick = function (span) {
+    var buttons = this.html.children[1].children[0];
+    buttons.current.className = "date-picker-mode-button";
+    buttons.current = span;
+    this.changeScale(span.scale);
+    this.emit(this.mediation.events.broadcast.pcupdate, {scale: span.scale});
+    buttons.current.className = "date-picker-mode-button active";
   };
 
   /**
@@ -225,7 +286,26 @@
     }
   };
 
+  DatePicker.prototype.generateEvents = function () {
+    //Updates
+    this.mediation.events.broadcast.dupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.day);
+    this.mediation.events.broadcast.wupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.week);
+    this.mediation.events.broadcast.mupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.month);
+    this.mediation.events.broadcast.yupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.year);
+    this.mediation.events.broadcast.pcupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.controls);
+    //Requests
+    this.mediation.events.broadcast.decday = this._constructEventString(Events.scope.broadcast, Events.desc.request.decrement.day);
+    this.mediation.events.broadcast.decweek = this._constructEventString(Events.scope.broadcast, Events.desc.request.decrement.week);
+    this.mediation.events.broadcast.decmonth = this._constructEventString(Events.scope.broadcast, Events.desc.request.decrement.month);
+    this.mediation.events.broadcast.decyear = this._constructEventString(Events.scope.broadcast, Events.desc.request.decrement.year);
+    this.mediation.events.broadcast.incday = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.day);
+    this.mediation.events.broadcast.incweek = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.week);
+    this.mediation.events.broadcast.incmonth = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.month);
+    this.mediation.events.broadcast.incyear = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.year);
+  };
+
   DatePicker.prototype.subscribe = function () {
+    //Updates
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.month);
@@ -234,10 +314,22 @@
     this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
     this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.pcupdate, this.controls);
+    //Requests
+    this.mediator.subscribe(this.mediation.events.broadcast.decday, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.decweek, this.partials.week);
+    this.mediator.subscribe(this.mediation.events.broadcast.decmonth, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.decyear, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.incday, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.incweek, this.partials.week);
+    this.mediator.subscribe(this.mediation.events.broadcast.incmonth, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.incyear, this.partials.day);
+
     this.partials.day.subscribe(this);
     this.partials.week.subscribe(this);
     this.partials.month.subscribe(this);
     this.partials.year.subscribe(this);
+    this.controls.subscribe(this);
   };
 
   /**
@@ -246,25 +338,55 @@
   DatePicker.prototype.notify = function (e) {
     if(e.scope === Events.scope.emit){
       switch(e.desc){
+        //Updates
         case Events.desc.update.day:
           this.emit(this.mediation.events.broadcast.wupdate, e.data);
           this.emit(this.mediation.events.broadcast.mupdate, e.data);
           this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          this.emit(this.mediation.events.broadcast.pcupdate, e.data);
           break;
         case Events.desc.update.week:
           this.emit(this.mediation.events.broadcast.dupdate, e.data);
           this.emit(this.mediation.events.broadcast.mupdate, e.data);
           this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          this.emit(this.mediation.events.broadcast.pcupdate, e.data);
           break;
         case Events.desc.update.month:
           this.emit(this.mediation.events.broadcast.dupdate, e.data);
           this.emit(this.mediation.events.broadcast.wupdate, e.data);
           this.emit(this.mediation.events.broadcast.yupdate, e.data);
+          this.emit(this.mediation.events.broadcast.pcupdate, e.data);
           break;
         case Events.desc.update.year:
           this.emit(this.mediation.events.broadcast.dupdate, e.data);
           this.emit(this.mediation.events.broadcast.wupdate, e.data);
           this.emit(this.mediation.events.broadcast.mupdate, e.data);
+          this.emit(this.mediation.events.broadcast.pcupdate, e.data);
+          break;
+        //Requests
+        case Events.desc.request.decrement.day:
+          this.emit(this.mediation.events.broadcast.decday, e.data);
+          break;
+        case Events.desc.request.decrement.week:
+          this.emit(this.mediation.events.broadcast.decweek, e.data);
+          break;
+        case Events.desc.request.decrement.month:
+          this.emit(this.mediation.events.broadcast.decmonth, e.data);
+          break;
+        case Events.desc.request.decrement.year:
+          this.emit(this.mediation.events.broadcast.decyear, e.data);
+          break;
+        case Events.desc.request.increment.day:
+          this.emit(this.mediation.events.broadcast.incday, e.data);
+          break;
+        case Events.desc.request.increment.week:
+          this.emit(this.mediation.events.broadcast.incweek, e.data);
+          break;
+        case Events.desc.request.increment.month:
+          this.emit(this.mediation.events.broadcast.incmonth, e.data);
+          break;
+        case Events.desc.request.increment.year:
+          this.emit(this.mediation.events.broadcast.incyear, e.data);
           break;
         default:
           break;

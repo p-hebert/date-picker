@@ -262,6 +262,7 @@ var Calendar =
   };
 
   Calendar.prototype.notify = function (e) {
+
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
@@ -276,6 +277,27 @@ var Calendar =
             this.setDate(e.data.date);
           }
           this.updateCalendarHTML();
+          break;
+        case Events.desc.request.decrement.day:
+          this.setDate(this.date.setDate(this.date.getUTCDate()-1));
+          this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+          this.updateCalendarHTML();
+          break;
+        case Events.desc.request.decrement.day:
+          this.setDate(this.date.setDate(this.date.getUTCDate()+1));
+          this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+          this.updateCalendarHTML();
+          break;
+        case Events.desc.request.decrement.week:
+          this.setDate(DateUtils.getDateInPreviousWeek(this.date));
+          this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+          this.updateCalendarHTML();
+          this.updateSelection();
+          break;
+        case Events.desc.request.increment.week:
+          this.setDate(DateUtils.getDateInNextWeek(this.date));
+          this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+          this.updateSelection();
           break;
         default:
           break;

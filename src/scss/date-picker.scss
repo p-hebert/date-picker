@@ -122,6 +122,10 @@ $spacing: 4px;
     fill: $boulder;
   }
 
+  &.disabled {
+    opacity: 0.2;
+  }
+
   > use {
     transform: translate(-1px, -1px); // Substract border width to center
   }

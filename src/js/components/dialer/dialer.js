@@ -24,7 +24,9 @@ var Dialer = (function(){
     //Date that is modified by the user
     this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
 
-    this.lang = (options.lang !== undefined && ['en','fr'].indexOf(options.lang) !== -1) ? options.lang : 'en';
+    this.lang = options.lang !== undefined &&
+                Dialer.prototype.enum.languages[options.lang] !== undefined ?
+                Dialer.prototype.enum.languages[options.lang] : 'en';
 
     this.dialers = [];
     this.indexes = [];
@@ -47,6 +49,10 @@ var Dialer = (function(){
     scales: {
       month : "month",
       year : "year",
+    },
+    languages: {
+      en: 'en',
+      fr: 'fr'
     }
   };
 

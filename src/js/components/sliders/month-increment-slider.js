@@ -4,7 +4,9 @@ var MonthIncrementSlider = (function(){
     component = component === undefined? MonthIncrementSlider.prototype.component : component;
     IncrementSlider.call(this, options, component);
     this.mediation.events.emit.mupdate = this._constructEventString(Events.scope.emit, Events.desc.update.mis);
-    this.lang = (options.lang !== undefined && ['en','fr'].indexOf(options.lang) !== -1) ? options.lang : 'en';
+    this.lang = options.lang !== undefined &&
+                MonthIncrementSlider.prototype.enum.languages[options.lang] !== undefined ?
+                MonthIncrementSlider.prototype.enum.languages[options.lang] : 'en';
     this.date = this.value;
     this.min_date = this.min_value;
     this.max_date = this.max_value;
@@ -20,6 +22,15 @@ var MonthIncrementSlider = (function(){
 
   //Component for Event Strings
   MonthIncrementSlider.prototype.component = 'MINCSLIDER';
+
+  //Enumerable Values
+  //Building upon prototype
+  MonthIncrementSlider.prototype.enum = IncrementSlider.prototype.enum;
+
+  MonthIncrementSlider.prototype.enum.languages = {
+    en: 'en',
+    fr: 'fr'
+  };
 
   /**
   * @override
@@ -215,6 +226,12 @@ var MonthIncrementSlider = (function(){
             this.setValue(e.data.date);
           }
           this.updateUIControls();
+          break;
+        case Events.desc.request.decrement.month:
+          this.onPrevClick();
+          break;
+        case Events.desc.request.increment.month:
+          this.onNextClick();
           break;
         default:
           break;
