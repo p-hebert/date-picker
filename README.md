@@ -109,8 +109,7 @@ You will find the javascript and compiled scss under `src/` as `date-picker.js` 
 | `date`        | Date                  | Default date to be displayed             | new Date()   |
 | `min_date`    | Date                  | Minimum date allowed for the date picker | undefined    |
 | `max_date`    | Date                  | Maximum date allowed for the date picker | undefined    |
-| `scale`       | string                | First scale to be shown.
-                                          Valid values are 'day', 'week', 'month', 'year' | 'day' |
+| `scale`       | string                | First scale to be shown. Valid values are 'day', 'week', 'month', 'year' | 'day' |
 | `parent`      | string or HTMLElement | Either a selector supported by [`document.querySelector()`](https://developer.mozilla.org/en-US/docs/Web/API/Document/querySelector) or an HTMLElement. | 'body' |
 | `lang`        | string                | Language of the DatePicker. Currently only English and French are supported | 'en' |
 | `icons`       | object                | Arrow icons used for the DatePicker. If you feel like a change of style, you can change those. However make sure to follow the default structure or your icons won't show up. | <see below> |
@@ -169,11 +168,11 @@ e is fired.
 
 ## Authorship
 
-- Design and UX by Gregory Benko-Prieur @gregorybp
-- Markup and styling by Guillaume Turgeon @guillaume-t95
-- Javascript by Philippe Hebert @p-hebert
+- Design and UX by @gregorybp
+- Markup and styling by @guillaume-t95
+- Javascript by @p-hebert
 
 ### Other Notes
 
-- DateUtils.formatDate can be moved to another repository and be completely
+- DateUtils.formatDate can be moved to another repository and modified for self-containment
   and then posted to [this SO post](http://stackoverflow.com/questions/3552461/how-to-format-a-javascript-date)
