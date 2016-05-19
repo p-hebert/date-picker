@@ -69,7 +69,6 @@ var PickerControls = (function(){
         this.period = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
         break;
       case PickerControls.prototype.enum.scales.week:
-        console.log('setValue scale: week');
         this.period = DateUtils.getWeekFALDays(this.date);
         break;
     }
@@ -83,7 +82,6 @@ var PickerControls = (function(){
   **/
   PickerControls.prototype.setUIValue = function(){
     var uivalue = "";
-    console.log(this.period);
     switch(this.scale){
       case PickerControls.prototype.enum.scales.day:
         switch(this.lang){
@@ -142,13 +140,20 @@ var PickerControls = (function(){
     var self = this;
     var inner =
       '<svg class="date-picker-global-increment prev"><use xlink:href="#arrow-prev-big"></svg>'+
-      '<div class="date-picker-date-label" data-toggle="dropdown"></div>' +
+      '<div class="date-picker-date-label"></div>' +
       '<svg class="date-picker-global-increment next"><use xlink:href="#arrow-next-big"></svg>';
     this.input = document.createElement('div');
     this.input.className = "date-picker-input";
     this.input.innerHTML = inner;
     this.setValue();
     this.prev = this.input.children[0];
+    this.input.children[1].addEventListener('click', function(){
+      if(self.input.className.indexOf('open') !== -1){
+        self.input.className = "date-picker-input";
+      }else{
+        self.input.className = "date-picker-input open";
+      }
+    });
     this.prev.addEventListener('click', function(){
       self.onPrevClick();
     });
@@ -223,9 +228,6 @@ var PickerControls = (function(){
   * @override
   **/
   PickerControls.prototype.onPrevClick = function () {
-    console.log('onPrevClick');
-    console.log(this.prev.isDisabled);
-    console.log(this.scale);
     if(this.prev.isDisabled === true){
       return;
     }
@@ -249,9 +251,6 @@ var PickerControls = (function(){
   * @override
   **/
   PickerControls.prototype.onNextClick = function () {
-    console.log('onNextClick');
-    console.log(this.prev.isDisabled);
-    console.log(this.scale);
     if(this.next.isDisabled === true){
       return;
     }

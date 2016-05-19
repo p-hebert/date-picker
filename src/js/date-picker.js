@@ -195,6 +195,21 @@
     content.appendChild(moderow);
     content.appendChild(body);
 
+    document.addEventListener('click', function(e){
+      var isChild = false,
+          node = e.target;
+      while (node !== null) {
+        if (node == datepicker) {
+           isChild = true;
+        }
+        node = node.parentNode;
+      }
+      if(!isChild){
+        var html = self.controls.getHTML();
+        html.className = "date-picker-input";
+      }
+    });
+
     datepicker.appendChild(this.controls.getHTML());
     datepicker.appendChild(content);
 
@@ -230,7 +245,7 @@
     if(document.querySelector("svg#dp-icons")){
       return document.querySelector("svg#dp-icons");
     }
-    var svg = document.createElement('svg'),
+    var svg = document.createElementNS('http://www.w3.org/2000/svg','svg'),
         idsmall = ['arrow-prev-small', 'arrow-next-small'],
         idbig = ['arrow-prev-big', 'arrow-next-big'];
     svg.id = "dp-icons";
