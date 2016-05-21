@@ -139,6 +139,19 @@ affect the DatePicker inner state.
 | `setMinDate(Date: date)`  | Sets the max date of the DatePicker      | **No**       |
 | `setMaxDate(Date: date)`  | Sets the min date of the DatePicker      | **No**       |
 | `changeScale(string: scale)` | Changes the scale of the DatePicker      | **Yes**      |
+| `addEventListener(string: e, function: callback)` | Adds an event listener to the specified event. Event must be available in `DatePicker.prototype.enum.callbacks`. See note below for more details. | **Yes**      |
+| `getComponent(string: comp)` | Returns the requested component. Must be listed in `DatePicker.prototype.enum.components` | **Yes** |
+
+#### Notes on API
+
+- `addEventListener(string: e, function: callback)`: Can only listen to
+  DatePicker events. To listen on component events, use
+  `getComponent(component).registerCallback(e, callback)` where `e` is available in the
+  component's prototype.enum.callbacks. Support for component event listening is
+  not standardized.
+- `getComponent(string: comp)`: Modifying the inner state of components will result in
+  inconsistencies, so be careful with what you aim to do with this. Moreover if you are
+  using the minified version prototype names are mangled.
 
 ### Planned API Features
 
@@ -160,11 +173,6 @@ affect the DatePicker inner state.
 - It is suspected that the PickerControls could introduce a way to go beyond
   the boundaries (max/min) if an inconsistency is found.
 - The French version is buggy at best.
-
-## Planned Features
-
-- `addEventListener(e, callback)` API call: Allows to run a callback when an internal event matching
-e is fired.
 
 ## Authorship
 
