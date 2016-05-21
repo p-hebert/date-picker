@@ -23,15 +23,24 @@ var Colleague = (function(){
   };
 
   Colleague.prototype.registerCallback = function (name, callback) {
-    var exists = false;
-    for(var key in Colleague.prototype.enum.callbacks){
-      if(key === name){
-        exists = true;
-        break;
+    var exists = false,
+        callbacks;
+    if(this.enum.callbacks !== undefined){
+      callbacks = [this.enum.callbacks, Colleague.prototype.enum.callbacks];
+    }else{
+      callbacks = [Colleague.prototype.enum.callbacks];
+    }
+    for(var i = 0; i < callbacks.length; i++){
+      for(var key in callbacks[i]){
+        if(key === name){
+          exists = true;
+          break;
+        }
       }
     }
     if(exists && typeof callback === "function"){
-      this.callbacks[name] = callback;
+      if(this.callbacks[name] === undefined) this.callbacks[name] = [];
+      this.callbacks[name].push(callback);
       return true;
     }else{
       return false;
@@ -39,9 +48,14 @@ var Colleague = (function(){
   };
 
   Colleague.prototype.callCallback = function (name, data) {
-    var index = Colleague.prototype.enum.callbacks[name];
+    if(name === undefined) throw new Error();
+    var index;
+    index = this.enum.callbacks !== undefined ? this.enum.callbacks[name] : undefined;
+    index = index === undefined ? Colleague.prototype.enum.callbacks[name] : index;
     if(this.callbacks[index] !== undefined){
-      this.callbacks[index].call(this, data);
+      for (var i = 0; i < this.callbacks[index].length; i++) {
+        this.callbacks[index][i].call(this, data);
+      }
     }
   };
 

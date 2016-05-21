@@ -43,7 +43,7 @@ var YDialerIncrementSlider = (function(){
 
   YDialerIncrementSlider.prototype.setDate = function(date){
     this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-    this.callCallback(IncrementSlider.prototype.enum.datechange);
+    this.callCallback(YDialerIncrementSlider.prototype.enum.callbacks.datechange, date);
   };
 
   YDialerIncrementSlider.prototype.updateRange = function () {

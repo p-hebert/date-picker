@@ -27,7 +27,7 @@ var YearIncrementSlider = (function(){
     this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
     this.value = this.date;
     this.setUIValue();
-    this.callCallback(IncrementSlider.prototype.enum.valuechange);
+    this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
   };
 
   /**

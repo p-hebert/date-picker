@@ -74,7 +74,7 @@ var PickerControls = (function(){
     }
     this.value = this.date;
     this.setUIValue();
-    this.callCallback(IncrementSlider.prototype.enum.valuechange);
+    this.callCallback(PickerControls.prototype.enum.callbacks.valuechange, value);
   };
 
   /**
