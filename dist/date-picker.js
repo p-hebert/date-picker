@@ -66,15 +66,24 @@
     };
   
     Colleague.prototype.registerCallback = function (name, callback) {
-      var exists = false;
-      for(var key in Colleague.prototype.enum.callbacks){
-        if(key === name){
-          exists = true;
-          break;
+      var exists = false,
+          callbacks;
+      if(this.enum.callbacks !== undefined){
+        callbacks = [this.enum.callbacks, Colleague.prototype.enum.callbacks];
+      }else{
+        callbacks = [Colleague.prototype.enum.callbacks];
+      }
+      for(var i = 0; i < callbacks.length; i++){
+        for(var key in callbacks[i]){
+          if(key === name){
+            exists = true;
+            break;
+          }
         }
       }
       if(exists && typeof callback === "function"){
-        this.callbacks[name] = callback;
+        if(this.callbacks[name] === undefined) this.callbacks[name] = [];
+        this.callbacks[name].push(callback);
         return true;
       }else{
         return false;
@@ -82,9 +91,14 @@
     };
   
     Colleague.prototype.callCallback = function (name, data) {
-      var index = Colleague.prototype.enum.callbacks[name];
+      if(name === undefined) throw new Error();
+      var index;
+      index = this.enum.callbacks !== undefined ? this.enum.callbacks[name] : undefined;
+      index = index === undefined ? Colleague.prototype.enum.callbacks[name] : index;
       if(this.callbacks[index] !== undefined){
-        this.callbacks[index].call(this, data);
+        for (var i = 0; i < this.callbacks[index].length; i++) {
+          this.callbacks[index][i].call(this, data);
+        }
       }
     };
   
@@ -1137,7 +1151,7 @@
       this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.value = this.date;
       this.setUIValue();
-      this.callCallback(IncrementSlider.prototype.enum.valuechange);
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
     /**
@@ -1316,7 +1330,7 @@
       this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.value = this.date;
       this.setUIValue();
-      this.callCallback(IncrementSlider.prototype.enum.valuechange);
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
     /**
@@ -1565,7 +1579,7 @@
   
     YDialerIncrementSlider.prototype.setDate = function(date){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.callCallback(IncrementSlider.prototype.enum.datechange);
+      this.callCallback(YDialerIncrementSlider.prototype.enum.callbacks.datechange, date);
     };
   
     YDialerIncrementSlider.prototype.updateRange = function () {
@@ -1752,7 +1766,7 @@
       }
       this.value = this.date;
       this.setUIValue();
-      this.callCallback(IncrementSlider.prototype.enum.valuechange);
+      this.callCallback(PickerControls.prototype.enum.callbacks.valuechange, value);
     };
   
     /**
@@ -2460,6 +2474,45 @@
     languages: {
       en: 'en',
       fr: 'fr'
+    },
+    callbacks: {
+      dateUpdate: 'dateUpdate',
+      minDateUpdate: 'minDateUpdate',
+      maxDateUpdate: 'maxDateUpdate',
+      scaleUpdate: 'scaleUpdate',
+      notify: 'notify',
+      emit: 'emit',
+    },
+    components: {
+      partials: {
+        day: "DAYPARTIAL",
+        week: "WEEKPARTIAL",
+        month: "MONTHPARTIAL",
+        year: "YEARPARTIAL"
+      },
+      sub: {
+        day:{
+          mis: "DAYMIS",
+          yis: "DAYYIS",
+          cal: "DAYCAL",
+        },
+        week: {
+          mis: "WEEKMIS",
+          yis: "WEEKYIS",
+          cal: "WEEKCAL",
+        },
+        month: {
+          yis: "MONTHYIS",
+          mdi: "MONTHDIALER",
+        },
+        year: {
+          yds: "YDIALERIS",
+          ydi: "YEARDIALER",
+        },
+        controls: {
+          pcs: "PICKERCONTROLS"
+        }
+      }
     }
   };
 
@@ -2467,6 +2520,7 @@
     if(date !== undefined && date instanceof Date && date >= this.min_date && date <= this.max_date){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       this.emit(this.mediation.events.gupdate, {date: date});
+      this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, date);
       return true;
     }
     return false;
@@ -2476,6 +2530,7 @@
     if(date !== undefined && date instanceof Date && date < this.max_date){
       this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       this.emit(this.mediation.events.gupdate, {min_date: date});
+      this.callCallback(DatePicker.prototype.enum.callbacks.minDateUpdate, date);
       return true;
     }
     return false;
@@ -2485,6 +2540,7 @@
     if(date !== undefined && date instanceof Date && date > this.min_date){
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       this.emit(this.mediation.events.gupdate, {max_date: date});
+      this.callCallback(DatePicker.prototype.enum.callbacks.maxDateUpdate, date);
       return true;
     }
     return false;
@@ -2495,6 +2551,57 @@
                  DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
     this.body.removeChild(this.body.children[0]);
     this.body.appendChild(this.partials[this.scale].getHTML());
+    this.callCallback(DatePicker.prototype.enum.callbacks.scaleUpdate, scale);
+  };
+
+  DatePicker.prototype.getComponent = function(comp){
+    switch(comp){
+      case DatePicker.prototype.enum.components.partials.day:
+        return this.partials[DatePicker.prototype.enum.scales.day];
+      case DatePicker.prototype.enum.components.partials.week:
+        return this.partials[DatePicker.prototype.enum.scales.week];
+      case DatePicker.prototype.enum.components.partials.month:
+        return this.partials[DatePicker.prototype.enum.scales.month];
+      case DatePicker.prototype.enum.components.partials.year:
+        return this.partials[DatePicker.prototype.enum.scales.year];
+      case DatePicker.prototype.enum.components.sub.day.mis:
+        return this.partials[DatePicker.prototype.enum.scales.day].components.minput;
+      case DatePicker.prototype.enum.components.sub.day.yis:
+        return this.partials[DatePicker.prototype.enum.scales.day].components.yinput;
+      case DatePicker.prototype.enum.components.sub.day.cal:
+        return this.partials[DatePicker.prototype.enum.scales.day].components.calendar;
+      case DatePicker.prototype.enum.components.sub.week.yis:
+        return this.partials[DatePicker.prototype.enum.scales.week].components.minput;
+      case DatePicker.prototype.enum.components.sub.week.mis:
+        return this.partials[DatePicker.prototype.enum.scales.week].components.yinput;
+      case DatePicker.prototype.enum.components.sub.week.cal:
+        return this.partials[DatePicker.prototype.enum.scales.week].components.calendar;
+      case DatePicker.prototype.enum.components.sub.month.yis:
+        return this.partials[DatePicker.prototype.enum.scales.month].components.yinput;
+      case DatePicker.prototype.enum.components.sub.month.mdi:
+        return this.partials[DatePicker.prototype.enum.scales.month].components.mdialer;
+      case DatePicker.prototype.enum.components.sub.year.yds:
+        return this.partials[DatePicker.prototype.enum.scales.year].components.ydinput;
+      case DatePicker.prototype.enum.components.sub.year.ydi:
+        return this.partials[DatePicker.prototype.enum.scales.year].components.ydialer;
+      case DatePicker.prototype.enum.components.sub.controls.pcs:
+        return this.controls;
+      default:
+        return undefined;
+    }
+  };
+
+  DatePicker.prototype.addEventListener = function(e, callback){
+    if(typeof e === "string"){
+      for(var key in DatePicker.prototype.enum.callbacks){
+        if(e === key){
+          this.registerCallback(e, callback);
+          break;
+        }
+      }
+    }else{
+      throw new Error('Illegal Argument: addEventListener takes a string as first parameter');
+    }
   };
 
   DatePicker.prototype.generateHTML = function () {
@@ -2746,8 +2853,10 @@
       }
       if(e.data.date instanceof Date){
         this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
+        this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, e.data.date);
       }
     }
+    Colleague.prototype.notify.call(this, e);
   };
 
   DatePicker.prototype.deepCopyObject = function(options){

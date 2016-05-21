@@ -203,7 +203,7 @@
   };
 
   DatePicker.prototype.getComponent = function(comp){
-    switch(e){
+    switch(comp){
       case DatePicker.prototype.enum.components.partials.day:
         return this.partials[DatePicker.prototype.enum.scales.day];
       case DatePicker.prototype.enum.components.partials.week:
