@@ -153,12 +153,6 @@ affect the DatePicker inner state.
   inconsistencies, so be careful with what you aim to do with this. Moreover if you are
   using the minified version prototype names are mangled.
 
-### Planned API Features
-
-| Method                              | Description                                             |
-| ----------------------------------- | ------------------------------------------------------- |
-| `addEventListener(e, callback)`     | Listens on one of the internal events of the datepicker |
-
 
 ## Currently Known Issues
 
