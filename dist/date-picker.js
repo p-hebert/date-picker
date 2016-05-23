@@ -1066,15 +1066,15 @@
     IncrementSlider.prototype.setValue = function(value){
       this.value = value;
       this.setUIValue();
-      this.callCallback(IncrementSlider.prototype.enum.valuechange);
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
     IncrementSlider.prototype.onPrevClick = function () {
-      this.callCallback(IncrementSlider.prototype.enum.prev);
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.prev);
     };
   
     IncrementSlider.prototype.onNextClick = function () {
-      this.callCallback(IncrementSlider.prototype.enum.next);
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.next);
     };
   
     IncrementSlider.prototype.setUIValue = function(){
@@ -2392,6 +2392,9 @@
                     undefined;
     this.date = options.date instanceof Date && options.date >= this.min_date && options.date <= this.max_date ?
                 options.date : undefined;
+    this.date.setUTCDate = function(d){
+      throw new Error();
+    };
     if(this.date === undefined){
       if(this.min_date){
         this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
@@ -2482,6 +2485,8 @@
       scaleUpdate: 'scaleUpdate',
       notify: 'notify',
       emit: 'emit',
+      commit: 'commit',
+      rollback: 'rollback'
     },
     components: {
       partials: {
@@ -2516,6 +2521,52 @@
     }
   };
 
+  DatePicker.prototype.getAPI = function () {
+    var self = this;
+    return {
+      getDate: function(){
+        return self.getDate();
+      },
+      setDate: function(date){
+        self.setDate(date);
+      },
+      getMinDate: function(){
+        return self.getMinDate();
+      },
+      setMinDate: function(date){
+        self.setMinDate(date);
+      },
+      getMaxDate: function(){
+        return self.getMaxDate();
+      },
+      setMaxDate: function(date){
+        self.setMaxDate(date);
+      },
+      getPeriod: function(){
+        return self.getPeriod();
+      },
+      getScales: function(){
+        return self.getScales();
+      },
+      getScale: function(){
+        return self.getScale();
+      },
+      changeScale: function(scale){
+        self.changeScale(scale);
+      },
+      addEventListener: function(e, c){
+        self.addEventListener(e,c);
+      },
+      getComponents: function(){
+        return self.getComponents();
+      }
+    };
+  };
+
+  DatePicker.prototype.getDate = function () {
+    return new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+  };
+
   DatePicker.prototype.setDate = function (date) {
     if(date !== undefined && date instanceof Date && date >= this.min_date && date <= this.max_date){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
@@ -2524,6 +2575,10 @@
       return true;
     }
     return false;
+  };
+
+  DatePicker.prototype.getMinDate = function () {
+    return new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
   };
 
   DatePicker.prototype.setMinDate = function (date) {
@@ -2536,6 +2591,10 @@
     return false;
   };
 
+  DatePicker.prototype.getMaxDate = function () {
+    return new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
+  };
+
   DatePicker.prototype.setMaxDate = function (date) {
     if(date !== undefined && date instanceof Date && date > this.min_date){
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
@@ -2546,12 +2605,60 @@
     return false;
   };
 
+  DatePicker.prototype.getPeriod = function () {
+    var period = {};
+    switch(this.scale){
+      case DatePicker.prototype.enum.scales.day:
+        period.date = this.getDate();
+        break;
+      case DatePicker.prototype.enum.scales.week:
+        period = DateUtils.getWeekFALDays(this.date);
+        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        break;
+      case DatePicker.prototype.enum.scales.month:
+        period.start = this.getDate();
+        period.start.setUTCDate(1);
+        period.end = this.getDate();
+        period.end.setUTCDate(DateUtils.daysInMonth(period.end.getUTCFullYear(), period.end.getUTCMonth()));
+        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        break;
+      case DatePicker.prototype.enum.scales.year:
+        period.start = this.getDate();
+        console.log(period.start);
+        period.start.setUTCMonth(0);
+        console.log(period.start);
+        period.start.setUTCDate(1);
+        console.log(period.start);
+        period.end = this.getDate();
+        period.end.setUTCMonth(11);
+        period.end.setUTCDate(31);
+        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        break;
+    }
+    return period;
+  };
+
+  DatePicker.prototype.getScales = function () {
+    return DatePicker.prototype.enum.scales;
+  };
+
+  DatePicker.prototype.getScale = function () {
+    return this.scale;
+  };
+
   DatePicker.prototype.changeScale = function(scale){
     this.scale = DatePicker.prototype.enum.scales[scale] === undefined ?
                  DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
     this.body.removeChild(this.body.children[0]);
     this.body.appendChild(this.partials[this.scale].getHTML());
     this.callCallback(DatePicker.prototype.enum.callbacks.scaleUpdate, scale);
+  };
+
+  DatePicker.prototype.getComponents = function () {
+    return DatePicker.prototype.enum.components;
   };
 
   DatePicker.prototype.getComponent = function(comp){
@@ -2869,6 +2976,7 @@
         copy[key] = object[key];
       }else if(typeof object[key] === "object" && object[key] !== null){
         if(object[key] instanceof Date){
+          object[key].setHours(0,0,0,0);
           copy[key] = new Date(object[key].getUTCFullYear(), object[key].getUTCMonth(), object[key].getUTCDate());
         }else if (object[key].nodeType !== undefined){
           copy[key] = object[key];

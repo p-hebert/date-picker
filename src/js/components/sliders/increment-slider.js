@@ -63,15 +63,15 @@ var IncrementSlider = (function(){
   IncrementSlider.prototype.setValue = function(value){
     this.value = value;
     this.setUIValue();
-    this.callCallback(IncrementSlider.prototype.enum.valuechange);
+    this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
   };
 
   IncrementSlider.prototype.onPrevClick = function () {
-    this.callCallback(IncrementSlider.prototype.enum.prev);
+    this.callCallback(IncrementSlider.prototype.enum.callbacks.prev);
   };
 
   IncrementSlider.prototype.onNextClick = function () {
-    this.callCallback(IncrementSlider.prototype.enum.next);
+    this.callCallback(IncrementSlider.prototype.enum.callbacks.next);
   };
 
   IncrementSlider.prototype.setUIValue = function(){
