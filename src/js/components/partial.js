@@ -45,17 +45,13 @@ var Partial = (function(){
   };
 
   Partial.prototype.rollback = function () {
-    this.date.setUTCFullYear(this.prev_date.getUTCFullYear());
-    this.date.setUTCMonth(this.prev_date.getUTCMonth());
-    this.date.setUTCDate(this.prev_date.getUTCDate());
+    this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
     var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     this.emit(this.mediation.events.broadcast.pupdate, {date: date});
   };
 
   Partial.prototype.commit = function () {
-    this.prev_date.setUTCFullYear(this.date.getUTCFullYear());
-    this.prev_date.setUTCMonth(this.date.getUTCMonth());
-    this.prev_date.setUTCDate(this.date.getUTCDate());
+    this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
   };
 
   Partial.prototype.generateHTML = function(options){
@@ -310,6 +306,12 @@ var Partial = (function(){
       this.emit(this.mediation.events.emit.pupdate, e.data);
     }else if(e.scope === Events.scope.broadcast){
       switch(e.desc){
+        case Events.desc.commit:
+          this.commit();
+          break;
+        case Events.desc.rollback:
+          this.rollback();
+          break;
         case Events.desc.request.increment.day:
           this.emit(this.mediation.events.broadcast.incday, e.data);
           break;

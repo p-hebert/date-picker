@@ -6,6 +6,8 @@
       emit: "EMIT"
     },
     desc: {
+      commit: "COMMIT",
+      rollback: "ROLLBACK",
       request: {
         decrement: {
           day: "DECREMENTDAY",
@@ -2068,17 +2070,13 @@
     };
   
     Partial.prototype.rollback = function () {
-      this.date.setUTCFullYear(this.prev_date.getUTCFullYear());
-      this.date.setUTCMonth(this.prev_date.getUTCMonth());
-      this.date.setUTCDate(this.prev_date.getUTCDate());
+      this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
       var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
       this.emit(this.mediation.events.broadcast.pupdate, {date: date});
     };
   
     Partial.prototype.commit = function () {
-      this.prev_date.setUTCFullYear(this.date.getUTCFullYear());
-      this.prev_date.setUTCMonth(this.date.getUTCMonth());
-      this.prev_date.setUTCDate(this.date.getUTCDate());
+      this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     };
   
     Partial.prototype.generateHTML = function(options){
@@ -2333,6 +2331,12 @@
         this.emit(this.mediation.events.emit.pupdate, e.data);
       }else if(e.scope === Events.scope.broadcast){
         switch(e.desc){
+          case Events.desc.commit:
+            this.commit();
+            break;
+          case Events.desc.rollback:
+            this.rollback();
+            break;
           case Events.desc.request.increment.day:
             this.emit(this.mediation.events.broadcast.incday, e.data);
             break;
@@ -2407,6 +2411,8 @@
         options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
       }
     }
+    this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+
     this.lang = options.lang !== undefined &&
                 DatePicker.prototype.enum.languages[options.lang] !== undefined ?
                 DatePicker.prototype.enum.languages[options.lang] : 'en';
@@ -2557,9 +2563,21 @@
       addEventListener: function(e, c){
         self.addEventListener(e,c);
       },
+      getHTML: function(){
+        return self.getHTML();
+      },
       getComponents: function(){
         return self.getComponents();
-      }
+      },
+      getComponent: function(comp){
+        return self.getComponent(comp);
+      },
+      commit: function(){
+        self.commit();
+      },
+      rollback: function(){
+        self.rollback();
+      },
     };
   };
 
@@ -2657,6 +2675,10 @@
     this.callCallback(DatePicker.prototype.enum.callbacks.scaleUpdate, scale);
   };
 
+  DatePicker.prototype.getHTML = function () {
+    return this.html;
+  };
+
   DatePicker.prototype.getComponents = function () {
     return DatePicker.prototype.enum.components;
   };
@@ -2711,6 +2733,20 @@
     }
   };
 
+  DatePicker.prototype.commit = function () {
+    var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+    this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
+    this.emit(this.mediation.events.broadcast.commit, {});
+    this.callCallback(DatePicker.prototype.enum.callbacks.commit, date);
+  };
+
+  DatePicker.prototype.rollback = function () {
+    var date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
+    this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
+    this.emit(this.mediation.events.broadcast.rollback, {});
+    this.callCallback(DatePicker.prototype.enum.callbacks.rollback, date);
+  };
+
   DatePicker.prototype.generateHTML = function () {
     var self = this,
         callback = function(e){
@@ -2759,6 +2795,7 @@
       if(!isChild){
         var html = self.controls.getHTML();
         html.className = "date-picker-input";
+        self.commit();
       }
     });
 
@@ -2854,6 +2891,9 @@
   };
 
   DatePicker.prototype.generateEvents = function () {
+    //Commit & rollback
+    this.mediation.events.broadcast.commit = this._constructEventString(Events.scope.broadcast, Events.desc.commit);
+    this.mediation.events.broadcast.rollback = this._constructEventString(Events.scope.broadcast, Events.desc.rollback);
     //Updates
     this.mediation.events.broadcast.dupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.day);
     this.mediation.events.broadcast.wupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.week);
@@ -2872,6 +2912,15 @@
   };
 
   DatePicker.prototype.subscribe = function () {
+    //Commit & rollback
+    this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.week);
+    this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.month);
+    this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.rollback, this.partials.day);
+    this.mediator.subscribe(this.mediation.events.broadcast.rollback, this.partials.week);
+    this.mediator.subscribe(this.mediation.events.broadcast.rollback, this.partials.month);
+    this.mediator.subscribe(this.mediation.events.broadcast.rollback, this.partials.year);
     //Updates
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.partials.week);

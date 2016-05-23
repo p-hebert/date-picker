@@ -4,6 +4,8 @@ var Events = {
     emit: "EMIT"
   },
   desc: {
+    commit: "COMMIT",
+    rollback: "ROLLBACK",
     request: {
       decrement: {
         day: "DECREMENTDAY",
