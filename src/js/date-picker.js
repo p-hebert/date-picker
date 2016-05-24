@@ -38,18 +38,17 @@
     this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
                     options.max_date :
                     undefined;
+
     this.date = options.date instanceof Date && options.date >= this.min_date && options.date <= this.max_date ?
                 options.date : undefined;
-    this.date.setUTCDate = function(d){
-      throw new Error();
-    };
+
     if(this.date === undefined){
-      if(this.min_date){
-        this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
-        options.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
-      }else if(this.max_date){
+      if(this.max_date){
         this.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
         options.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
+      }else if(this.min_date){
+        this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
+        options.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
       }else{
         this.date = new Date();
         options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
@@ -81,6 +80,21 @@
     //Generating markup and appending to DOM
     this.generateSVG(options.icons);
     this.generateHTML();
+
+    //Fixes references to inline SVG elements when the <base> tag is in use.
+    //Related to http://stackoverflow.com/a/18265336/796152
+    //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
+    if(document.querySelector("base")){
+  		var baseUrl = window.location.href
+  			.replace(window.location.hash, "");
+  		[].slice.call(document.querySelectorAll("use[*|href]"))
+  			.filter(function(element) {
+  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
+  			})
+  			.forEach(function(element) {
+  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
+  			});
+    }
   }
 
   //Binding the prototype of the Parent object
