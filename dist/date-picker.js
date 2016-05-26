@@ -2658,11 +2658,8 @@
         break;
       case DatePicker.prototype.enum.scales.year:
         period.start = this.getDate();
-        console.log(period.start);
         period.start.setUTCMonth(0);
-        console.log(period.start);
         period.start.setUTCDate(1);
-        console.log(period.start);
         period.end = this.getDate();
         period.end.setUTCMonth(11);
         period.end.setUTCDate(31);
@@ -2806,8 +2803,8 @@
         }
         node = node.parentNode;
       }
-      if(!isChild){
-        var html = self.controls.getHTML();
+      var html = self.controls.getHTML();
+      if(!isChild && html.className !== "date-picker-input"){
         html.className = "date-picker-input";
         self.commit();
       }
