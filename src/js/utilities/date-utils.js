@@ -35,30 +35,27 @@ var DateUtils = {
     return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getDay();
   },
   getDateInPreviousWeek: function(date){
-    return new Date(date.getUTCFullYear(), date.getUTCMonth(),date.getUTCDate() - 7);
+    var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    d.setUTCDate(d.getUTCDate() - 7);
+    return d;
   },
   getDateInNextWeek: function(date){
-    return new Date(date.getUTCFullYear(), date.getUTCMonth(),date.getUTCDate() + 7);
+    var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    d.setUTCDate(d.getUTCDate() + 7);
+    return d;
+  },
+  dateAddDays: function(date, days){
+    var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    d.setUTCDate(d.getUTCDate() + days);
+    return d;
   },
   //Get the week's first and last days.
   getWeekFALDays: function(date){
     var week = {};
-    var day, month, year, daysInMonth;
-    day = date.getUTCDate() - date.getUTCDay();
-    month = day < 1 ? date.getUTCMonth() -1 : date.getUTCMonth();
-    year = month < 0 ? date.getUTCFullYear() -1 : date.getUTCFullYear();
-    month = month === -1 ? 11 : month;
-    day = day < 1 ? this.daysInMonth(year, month) + day : day;
-    week.start = new Date(year, month, day);
-
-    day = week.start.getUTCDate() + 6;
-    daysInMonth = this.daysInMonth(date.getUTCFullYear(), date.getUTCMonth());
-    month = day > daysInMonth ? month + 1 : month;
-    year = month === 12 ? date.getUTCFullYear() + 1 : date.getUTCFullYear();
-    month = month === 12 ? 0 : month;
-    day = day > daysInMonth ? day - daysInMonth - 1 : day;
-    week.end = new Date(year, month, day);
-
+    week.start = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+    week.start.setDate(week.start.getUTCDate() - week.start.getUTCDay());
+    week.end = new Date(week.start.getUTCFullYear(), week.start.getUTCMonth(), week.start.getUTCDate());
+    week.end.setDate(week.end.getUTCDate() + 6);
     return week;
   },
   //http://stackoverflow.com/a/26426761/4442749
