@@ -273,30 +273,27 @@
       return new Date(date.getUTCFullYear(), date.getUTCMonth(), 1).getDay();
     },
     getDateInPreviousWeek: function(date){
-      return new Date(date.getUTCFullYear(), date.getUTCMonth(),date.getUTCDate() - 7);
+      var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      d.setUTCDate(d.getUTCDate() - 7);
+      return d;
     },
     getDateInNextWeek: function(date){
-      return new Date(date.getUTCFullYear(), date.getUTCMonth(),date.getUTCDate() + 7);
+      var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      d.setUTCDate(d.getUTCDate() + 7);
+      return d;
+    },
+    dateAddDays: function(date, days){
+      var d = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      d.setUTCDate(d.getUTCDate() + days);
+      return d;
     },
     //Get the week's first and last days.
     getWeekFALDays: function(date){
       var week = {};
-      var day, month, year, daysInMonth;
-      day = date.getUTCDate() - date.getUTCDay();
-      month = day < 1 ? date.getUTCMonth() -1 : date.getUTCMonth();
-      year = month < 0 ? date.getUTCFullYear() -1 : date.getUTCFullYear();
-      month = month === -1 ? 11 : month;
-      day = day < 1 ? this.daysInMonth(year, month) + day : day;
-      week.start = new Date(year, month, day);
-  
-      day = week.start.getUTCDate() + 6;
-      daysInMonth = this.daysInMonth(date.getUTCFullYear(), date.getUTCMonth());
-      month = day > daysInMonth ? month + 1 : month;
-      year = month === 12 ? date.getUTCFullYear() + 1 : date.getUTCFullYear();
-      month = month === 12 ? 0 : month;
-      day = day > daysInMonth ? day - daysInMonth - 1 : day;
-      week.end = new Date(year, month, day);
-  
+      week.start = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      week.start.setDate(week.start.getUTCDate() - week.start.getUTCDay());
+      week.end = new Date(week.start.getUTCFullYear(), week.start.getUTCMonth(), week.start.getUTCDate());
+      week.end.setDate(week.end.getUTCDate() + 6);
       return week;
     },
     //http://stackoverflow.com/a/26426761/4442749
@@ -467,7 +464,7 @@
     };
   
     Calendar.prototype.setDate = function (date) {
-      if(date instanceof Date && (this.min_date !== undefined || date > this.min_date) && (this.max_date !== undefined || date < this.max_date)){
+      if(date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)){
         this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       }
     };
@@ -539,7 +536,8 @@
             span.cdata = {
               selectable: false,
               day: daysInPrevMonth - (firstDayOfMonth - j),
-              month: this.date.getUTCMonth()-1
+              month: NumberUtils.mod(this.date.getUTCMonth()-1,12),
+              year: NumberUtils.mod(this.date.getUTCMonth()-1,12) === 11 ? this.date.getUTCFullYear()-1 :this.date.getUTCFullYear()
             };
             row.appendChild(span);
             spans.push(span);
@@ -552,7 +550,9 @@
             selectable: day <= daysInMonth,
             //Takes in account days of next month
             day: day > daysInMonth ? day - daysInMonth : day,
-            month: day > daysInMonth ? this.date.getUTCMonth()+1 : this.date.getUTCMonth()
+            month: day > daysInMonth ? NumberUtils.mod(this.date.getUTCMonth()+1,12) : this.date.getUTCMonth(),
+            year: day > daysInMonth && NumberUtils.mod(this.date.getUTCMonth()+1,12) === 0 ?
+                  this.date.getUTCFullYear()+1 : this.date.getUTCFullYear()
           };
           //Default class
           span.className = "date-picker-day-cell";
@@ -578,18 +578,18 @@
           day++;
         }
         row.cdata = {
-          inMonth: self._rowInMonth(row),
           start: new Date(
-                            self.date.getUTCFullYear(),
+                            row.children[0].cdata.year,
                             row.children[0].cdata.month,
                             row.children[0].cdata.day
                          ),
           end:   new Date(
-                            this.date.getUTCFullYear(),
+                            row.children[6].cdata.year,
                             row.children[6].cdata.month,
                             row.children[6].cdata.day
                          ),
         };
+        row.cdata.disabled = self._isRowDisabled(row);
         rows.push(row);
         calendar.appendChild(row);
       }
@@ -600,32 +600,44 @@
       return calendar;
     };
   
-    Calendar.prototype._rowInMonth = function (row) {
+    Calendar.prototype._isRowDisabled = function (row) {
+      if((this.min_date !== undefined && row.cdata.end < this.min_date) ||
+         (this.max_date !== undefined && row.cdata.start > this.max_date)){
+        return true;
+      }
       for(var i = 0 ; i < row.children.length; i++){
         if(row.children[i].className.indexOf("disabled") === -1){
-          return true;
+          return false;
         }
       }
-      return false;
+      return true;
     };
   
     Calendar.prototype.updateSelection = function (span) {
-      var calendar = this.html,
-          day = this.date.getUTCDate(),
-          month = this.date.getUTCMonth();
-      if(calendar.current.cdata.day !== day){
-        this.removeSelection();
-        if(span === undefined){
-          for (var i = 0; i < this.html.children.length; i++) {
-            for (var j = 0; j < this.html.children[i].children.length; j++) {
-              if(this.html.children[i].children[j].cdata.day === day && this.html.children[i].children[j].cdata.month === month){
-                this.newSelection(this.html.children[i].children[j]);
-              }
-            }
+      var calendar = this.html;
+      this.removeSelection();
+      if(span === undefined){
+        for (var i = 0; i < this.html.children.length; i++) {
+          for (var j = 0; j < this.html.children[i].children.length; j++) {
+            this.applyClass(this.html.children[i].children[j]);
           }
-        }else{
-          this.newSelection(span);
+          this.html.children[i].cdata.disabled = this._isRowDisabled(this.html.children[i]);
         }
+      }else{
+        this.newSelection(span);
+      }
+    };
+  
+    Calendar.prototype.applyClass = function (span) {
+      var span_date = new Date(span.cdata.year, span.cdata.month, span.cdata.day);
+      span.className = "date-picker-day-cell disabled";
+      if((this.min_date !== undefined && span_date < this.min_date) ||
+         (this.max_date !== undefined && span_date > this.max_date)){
+        span.className = "date-picker-day-cell disabled";
+      }else if(span.cdata.day === this.date.getUTCDate() && span.cdata.month === this.date.getUTCMonth()){
+        this.newSelection(span);
+      }else if(span.cdata.month == this.date.getUTCMonth()){
+        span.className = "date-picker-day-cell";
       }
     };
   
@@ -652,7 +664,7 @@
       if(target.className.indexOf("date-picker-day-cell") !== -1){
         target = target.parentNode;
       }
-      if(target.cdata.inMonth === true){
+      if(target.cdata.disabled === false){
         this.date.setUTCDate(target.cdata.start.getUTCDate());
         this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
         this.updateSelection(target.children[0]);
@@ -679,37 +691,53 @@
       if(e.scope === Events.scope.broadcast){
         switch(e.desc){
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
+            if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+              (this.max_date === undefined || e.data.min_date < this.max_date)){
               this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+              if(this.date < this.min_date){
+                this.setDate(this.min_date);
+                this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+              }
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date){
+            if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+              (this.min_date === undefined || e.data.max_date > this.min_date)){
               this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+              if(this.date > this.max_date){
+                this.setDate(this.max_date);
+                this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+              }
             }
           case Events.desc.update.cal:
-            if(e.data.date !== undefined && e.data.date instanceof Date){
+            if(e.data.date !== undefined){
               this.setDate(e.data.date);
             }
+            this.updateSelection();
             this.updateCalendarHTML();
             break;
           case Events.desc.request.decrement.day:
-            this.setDate(this.date.setDate(this.date.getUTCDate()-1));
+            this.setDate(DateUtils.dateAddDays(this.date, -1));
             this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
             this.updateCalendarHTML();
+            this.updateSelection();
             break;
-          case Events.desc.request.decrement.day:
-            this.setDate(this.date.setDate(this.date.getUTCDate()+1));
+          case Events.desc.request.increment.day:
+            this.setDate(DateUtils.dateAddDays(this.date, 1));
             this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
             this.updateCalendarHTML();
+            this.updateSelection();
             break;
           case Events.desc.request.decrement.week:
+            console.log(DateUtils.getDateInPreviousWeek(this.date));
             this.setDate(DateUtils.getDateInPreviousWeek(this.date));
             this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
             this.updateCalendarHTML();
             this.updateSelection();
             break;
           case Events.desc.request.increment.week:
+            console.log(DateUtils.getDateInPreviousWeek(this.date));
             this.setDate(DateUtils.getDateInNextWeek(this.date));
             this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+            this.updateCalendarHTML();
             this.updateSelection();
             break;
           default:
@@ -789,7 +817,7 @@
     };
   
     Dialer.prototype.setDate = function (date) {
-      if(date instanceof Date && (this.min_date !== undefined || date > this.min_date) && (this.max_date !== undefined || date < this.max_date)){
+      if(date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)){
         this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       }
     };
@@ -844,8 +872,7 @@
         for(i = 0; i < 8; i++){
           span = document.createElement('span');
           span.ddata = {
-            //TODO: to review
-            year : this.init_max - i + this.index*8
+            year : this.init_max - (8-i) + this.index*8
           };
           span.innerHTML = span.ddata.year;
           this.applyClass(span, dialer);
@@ -956,15 +983,17 @@
       if(e.scope === Events.scope.broadcast){
         switch(e.desc){
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
-              //TODO: create method that revises the HTML when the min_date is changed
+            if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+              (this.max_date === undefined || e.data.min_date < this.max_date)){
               this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+              this.updateSelection();
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date){
-              //TODO: create method that revises the HTML when the max_date is changed
+            if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+              (this.min_date === undefined || e.data.max_date > this.min_date)){
               this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+              this.updateSelection();
             }
-            if(e.data.date !== undefined && e.data.date instanceof Date){
+            if(e.data.date !== undefined){
               this.setDate(e.data.date);
               if(this.scale === Dialer.prototype.enum.scales.year){
                 this.updateDialerHTML();
@@ -1029,6 +1058,8 @@
         notify: "notify",
         emit: "emit",
         prev: "prev",
+        maxchange: "maxchange",
+        minchange: "minchange",
         valuechange: "valuechange",
         next: "next",
         event: "event"
@@ -1156,6 +1187,24 @@
       this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
+    YearIncrementSlider.prototype.setMinValue = function(value){
+      if(value instanceof Date &&
+        (this.max_date === undefined || value < this.max_date)){
+        this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.min_value = this.min_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
+      }
+    };
+  
+    YearIncrementSlider.prototype.setMaxValue = function(value){
+      if(value instanceof Date &&
+        (this.min_date === undefined || value > this.min_date)){
+        this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.max_value = this.max_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
+      }
+    };
+  
     /**
     * @override
     **/
@@ -1263,11 +1312,11 @@
       if(e.scope === Events.scope.broadcast){
         switch(e.desc){
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
-              this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+            if(e.data.min_date !== undefined){
+              this.setMinValue(e.data.min_date);
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date){
-              this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+            if(e.data.max_date !== undefined){
+              this.setMaxValue(e.data.max_date);
             }
           case Events.desc.update.yis:
             if(e.data.date !== undefined && e.data.date instanceof Date){
@@ -1333,6 +1382,24 @@
       this.value = this.date;
       this.setUIValue();
       this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
+    };
+  
+    MonthIncrementSlider.prototype.setMinValue = function(value){
+      if(value instanceof Date &&
+        (this.max_date === undefined || value < this.max_date)){
+        this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.min_value = this.min_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
+      }
+    };
+  
+    MonthIncrementSlider.prototype.setMaxValue = function(value){
+      if(value instanceof Date &&
+        (this.min_date === undefined || value > this.min_date)){
+        this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.max_value = this.max_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
+      }
     };
   
     /**
@@ -1508,11 +1575,11 @@
       if(e.scope === Events.scope.broadcast){
         switch(e.desc){
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
-              this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+            if(e.data.min_date !== undefined){
+              this.setMinValue(e.data.min_date);
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date){
-              this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+            if(e.data.max_date !== undefined){
+              this.setMaxValue(e.data.max_date);
             }
           case Events.desc.update.mis:
             if(e.data.date !== undefined && e.data.date instanceof Date){
@@ -1582,6 +1649,24 @@
     YDialerIncrementSlider.prototype.setDate = function(date){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
       this.callCallback(YDialerIncrementSlider.prototype.enum.callbacks.datechange, date);
+    };
+  
+    YDialerIncrementSlider.prototype.setMinValue = function(value){
+      if(value instanceof Date &&
+        (this.max_date === undefined || value < this.max_date)){
+        this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.min_value = this.min_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
+      }
+    };
+  
+    YDialerIncrementSlider.prototype.setMaxValue = function(value){
+      if(value instanceof Date &&
+        (this.min_date === undefined || value > this.min_date)){
+        this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+        this.max_value = this.max_date;
+        this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
+      }
     };
   
     YDialerIncrementSlider.prototype.updateRange = function () {
@@ -1659,11 +1744,11 @@
       if(e.scope === Events.scope.broadcast){
         switch(e.desc){
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
-              this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+            if(e.data.min_date !== undefined){
+              this.setMinValue(e.data.min_date);
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date && e.data.max_date >= e.data.min_date){
-              this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+            if(e.data.max_date !== undefined){
+              this.setMaxValue(e.data.max_date);
             }
           case Events.desc.update.yds:
             if(e.data.date !== undefined && e.data.date instanceof Date){
@@ -1753,7 +1838,9 @@
     * @override
     **/
     PickerControls.prototype.setValue = function(value){
-      if(value !== undefined){
+      if(value !== undefined &&
+         (this.min_date === undefined || value >= this.min_date) &&
+         (this.max_date === undefined || value <= this.max_date)){
         this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       }
       switch(this.scale){
@@ -1998,10 +2085,12 @@
         switch(e.desc){
           case Events.desc.update.controls:
           case Events.desc.update.global:
-            if(e.data.min_date !== undefined && e.data.date instanceof Date){
+            if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+              (this.max_date === undefined || e.data.min_date < this.max_date)){
               this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
             }
-            if(e.data.max_date !== undefined && e.data.date instanceof Date){
+            if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+              (this.min_date === undefined || e.data.max_date > this.min_date)){
               this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
             }
             if(e.data.scale !== undefined && PickerControls.prototype.enum.scales[e.data.scale] !== undefined){
@@ -2437,20 +2526,7 @@
     this.generateSVG(options.icons);
     this.generateHTML();
 
-    //Fixes references to inline SVG elements when the <base> tag is in use.
-    //Related to http://stackoverflow.com/a/18265336/796152
-    //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
-    if(document.querySelector("base")){
-  		var baseUrl = window.location.href
-  			.replace(window.location.hash, "");
-  		[].slice.call(document.querySelectorAll("use[*|href]"))
-  			.filter(function(element) {
-  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
-  			})
-  			.forEach(function(element) {
-  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
-  			});
-    }
+    this.patchSVGURLs();
   }
 
   //Binding the prototype of the Parent object
@@ -2592,6 +2668,9 @@
       rollback: function(){
         self.rollback();
       },
+      patchSVGURLs: function(){
+        self.patchSVGURLs();
+      }
     };
   };
 
@@ -2600,9 +2679,11 @@
   };
 
   DatePicker.prototype.setDate = function (date) {
-    if(date !== undefined && date instanceof Date && date >= this.min_date && date <= this.max_date){
+    if(date !== undefined && date instanceof Date &&
+       (this.min_date === undefined || date >= this.min_date) &&
+       (this.max_date === undefined || date <= this.max_date)){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {date: date});
       this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, date);
       return true;
     }
@@ -2610,13 +2691,17 @@
   };
 
   DatePicker.prototype.getMinDate = function () {
+    if(this.min_date === undefined) return undefined;
     return new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
   };
 
   DatePicker.prototype.setMinDate = function (date) {
-    if(date !== undefined && date instanceof Date && date < this.max_date){
+    if(date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)){
       this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {min_date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {min_date: date});
+      if(this.date < this.min_date){
+        this.setDate(this.min_date);
+      }
       this.callCallback(DatePicker.prototype.enum.callbacks.minDateUpdate, date);
       return true;
     }
@@ -2624,13 +2709,17 @@
   };
 
   DatePicker.prototype.getMaxDate = function () {
+    if(this.max_date === undefined) return undefined;
     return new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
   };
 
   DatePicker.prototype.setMaxDate = function (date) {
-    if(date !== undefined && date instanceof Date && date > this.min_date){
+    if(date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)){
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {max_date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {max_date: date});
+      if(this.date > this.max_date){
+        this.setDate(this.max_date);
+      }
       this.callCallback(DatePicker.prototype.enum.callbacks.maxDateUpdate, date);
       return true;
     }
@@ -2645,16 +2734,16 @@
         break;
       case DatePicker.prototype.enum.scales.week:
         period = DateUtils.getWeekFALDays(this.date);
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
       case DatePicker.prototype.enum.scales.month:
         period.start = this.getDate();
         period.start.setUTCDate(1);
         period.end = this.getDate();
         period.end.setUTCDate(DateUtils.daysInMonth(period.end.getUTCFullYear(), period.end.getUTCMonth()));
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
       case DatePicker.prototype.enum.scales.year:
         period.start = this.getDate();
@@ -2663,8 +2752,8 @@
         period.end = this.getDate();
         period.end.setUTCMonth(11);
         period.end.setUTCDate(31);
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
     }
     return period;
@@ -2901,6 +2990,23 @@
     }
   };
 
+  //Fixes references to inline SVG elements when the <base> tag is in use.
+  //Related to http://stackoverflow.com/a/18265336/796152
+  //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
+  DatePicker.prototype.patchSVGURLs = function () {
+    if(document.querySelector("base")){
+  		var baseUrl = window.location.href
+  			.replace(window.location.hash, "");
+  		[].slice.call(document.querySelectorAll("use[*|href]"))
+  			.filter(function(element) {
+  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
+  			})
+  			.forEach(function(element) {
+  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
+  			});
+    }
+  };
+
   DatePicker.prototype.generateEvents = function () {
     //Commit & rollback
     this.mediation.events.broadcast.commit = this._constructEventString(Events.scope.broadcast, Events.desc.commit);
@@ -2941,6 +3047,7 @@
     this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
     this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.controls);
     this.mediator.subscribe(this.mediation.events.broadcast.pcupdate, this.controls);
     //Requests
     this.mediator.subscribe(this.mediation.events.broadcast.decday, this.partials.day);
