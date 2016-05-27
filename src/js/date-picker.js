@@ -81,20 +81,7 @@
     this.generateSVG(options.icons);
     this.generateHTML();
 
-    //Fixes references to inline SVG elements when the <base> tag is in use.
-    //Related to http://stackoverflow.com/a/18265336/796152
-    //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
-    if(document.querySelector("base")){
-  		var baseUrl = window.location.href
-  			.replace(window.location.hash, "");
-  		[].slice.call(document.querySelectorAll("use[*|href]"))
-  			.filter(function(element) {
-  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
-  			})
-  			.forEach(function(element) {
-  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
-  			});
-    }
+    this.patchSVGURLs();
   }
 
   //Binding the prototype of the Parent object
@@ -236,6 +223,9 @@
       rollback: function(){
         self.rollback();
       },
+      patchSVGURLs: function(){
+        self.patchSVGURLs();
+      }
     };
   };
 
@@ -244,9 +234,11 @@
   };
 
   DatePicker.prototype.setDate = function (date) {
-    if(date !== undefined && date instanceof Date && date >= this.min_date && date <= this.max_date){
+    if(date !== undefined && date instanceof Date &&
+       (this.min_date === undefined || date >= this.min_date) &&
+       (this.max_date === undefined || date <= this.max_date)){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {date: date});
       this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, date);
       return true;
     }
@@ -254,13 +246,17 @@
   };
 
   DatePicker.prototype.getMinDate = function () {
+    if(this.min_date === undefined) return undefined;
     return new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
   };
 
   DatePicker.prototype.setMinDate = function (date) {
-    if(date !== undefined && date instanceof Date && date < this.max_date){
+    if(date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)){
       this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {min_date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {min_date: date});
+      if(this.date < this.min_date){
+        this.setDate(this.min_date);
+      }
       this.callCallback(DatePicker.prototype.enum.callbacks.minDateUpdate, date);
       return true;
     }
@@ -268,13 +264,17 @@
   };
 
   DatePicker.prototype.getMaxDate = function () {
+    if(this.max_date === undefined) return undefined;
     return new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
   };
 
   DatePicker.prototype.setMaxDate = function (date) {
-    if(date !== undefined && date instanceof Date && date > this.min_date){
+    if(date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)){
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.gupdate, {max_date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, {max_date: date});
+      if(this.date > this.max_date){
+        this.setDate(this.max_date);
+      }
       this.callCallback(DatePicker.prototype.enum.callbacks.maxDateUpdate, date);
       return true;
     }
@@ -289,16 +289,16 @@
         break;
       case DatePicker.prototype.enum.scales.week:
         period = DateUtils.getWeekFALDays(this.date);
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
       case DatePicker.prototype.enum.scales.month:
         period.start = this.getDate();
         period.start.setUTCDate(1);
         period.end = this.getDate();
         period.end.setUTCDate(DateUtils.daysInMonth(period.end.getUTCFullYear(), period.end.getUTCMonth()));
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
       case DatePicker.prototype.enum.scales.year:
         period.start = this.getDate();
@@ -307,8 +307,8 @@
         period.end = this.getDate();
         period.end.setUTCMonth(11);
         period.end.setUTCDate(31);
-        period.start = period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
         break;
     }
     return period;
@@ -545,6 +545,23 @@
     }
   };
 
+  //Fixes references to inline SVG elements when the <base> tag is in use.
+  //Related to http://stackoverflow.com/a/18265336/796152
+  //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
+  DatePicker.prototype.patchSVGURLs = function () {
+    if(document.querySelector("base")){
+  		var baseUrl = window.location.href
+  			.replace(window.location.hash, "");
+  		[].slice.call(document.querySelectorAll("use[*|href]"))
+  			.filter(function(element) {
+  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
+  			})
+  			.forEach(function(element) {
+  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
+  			});
+    }
+  };
+
   DatePicker.prototype.generateEvents = function () {
     //Commit & rollback
     this.mediation.events.broadcast.commit = this._constructEventString(Events.scope.broadcast, Events.desc.commit);
@@ -585,6 +602,7 @@
     this.mediator.subscribe(this.mediation.events.broadcast.wupdate, this.partials.week);
     this.mediator.subscribe(this.mediation.events.broadcast.mupdate, this.partials.month);
     this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.partials.year);
+    this.mediator.subscribe(this.mediation.events.broadcast.gupdate, this.controls);
     this.mediator.subscribe(this.mediation.events.broadcast.pcupdate, this.controls);
     //Requests
     this.mediator.subscribe(this.mediation.events.broadcast.decday, this.partials.day);

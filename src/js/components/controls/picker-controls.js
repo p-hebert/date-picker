@@ -59,7 +59,9 @@ var PickerControls = (function(){
   * @override
   **/
   PickerControls.prototype.setValue = function(value){
-    if(value !== undefined){
+    if(value !== undefined &&
+       (this.min_date === undefined || value >= this.min_date) &&
+       (this.max_date === undefined || value <= this.max_date)){
       this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
     }
     switch(this.scale){
@@ -304,10 +306,12 @@ var PickerControls = (function(){
       switch(e.desc){
         case Events.desc.update.controls:
         case Events.desc.update.global:
-          if(e.data.min_date !== undefined && e.data.date instanceof Date){
+          if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+            (this.max_date === undefined || e.data.min_date < this.max_date)){
             this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
           }
-          if(e.data.max_date !== undefined && e.data.date instanceof Date){
+          if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+            (this.min_date === undefined || e.data.max_date > this.min_date)){
             this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
           }
           if(e.data.scale !== undefined && PickerControls.prototype.enum.scales[e.data.scale] !== undefined){

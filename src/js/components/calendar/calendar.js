@@ -54,7 +54,7 @@ var Calendar =
   };
 
   Calendar.prototype.setDate = function (date) {
-    if(date instanceof Date && (this.min_date !== undefined || date > this.min_date) && (this.max_date !== undefined || date < this.max_date)){
+    if(date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     }
   };
@@ -126,7 +126,8 @@ var Calendar =
           span.cdata = {
             selectable: false,
             day: daysInPrevMonth - (firstDayOfMonth - j),
-            month: this.date.getUTCMonth()-1
+            month: NumberUtils.mod(this.date.getUTCMonth()-1,12),
+            year: NumberUtils.mod(this.date.getUTCMonth()-1,12) === 11 ? this.date.getUTCFullYear()-1 :this.date.getUTCFullYear()
           };
           row.appendChild(span);
           spans.push(span);
@@ -139,7 +140,9 @@ var Calendar =
           selectable: day <= daysInMonth,
           //Takes in account days of next month
           day: day > daysInMonth ? day - daysInMonth : day,
-          month: day > daysInMonth ? this.date.getUTCMonth()+1 : this.date.getUTCMonth()
+          month: day > daysInMonth ? NumberUtils.mod(this.date.getUTCMonth()+1,12) : this.date.getUTCMonth(),
+          year: day > daysInMonth && NumberUtils.mod(this.date.getUTCMonth()+1,12) === 0 ?
+                this.date.getUTCFullYear()+1 : this.date.getUTCFullYear()
         };
         //Default class
         span.className = "date-picker-day-cell";
@@ -165,18 +168,18 @@ var Calendar =
         day++;
       }
       row.cdata = {
-        inMonth: self._rowInMonth(row),
         start: new Date(
-                          self.date.getUTCFullYear(),
+                          row.children[0].cdata.year,
                           row.children[0].cdata.month,
                           row.children[0].cdata.day
                        ),
         end:   new Date(
-                          this.date.getUTCFullYear(),
+                          row.children[6].cdata.year,
                           row.children[6].cdata.month,
                           row.children[6].cdata.day
                        ),
       };
+      row.cdata.disabled = self._isRowDisabled(row);
       rows.push(row);
       calendar.appendChild(row);
     }
@@ -187,32 +190,44 @@ var Calendar =
     return calendar;
   };
 
-  Calendar.prototype._rowInMonth = function (row) {
+  Calendar.prototype._isRowDisabled = function (row) {
+    if((this.min_date !== undefined && row.cdata.end < this.min_date) ||
+       (this.max_date !== undefined && row.cdata.start > this.max_date)){
+      return true;
+    }
     for(var i = 0 ; i < row.children.length; i++){
       if(row.children[i].className.indexOf("disabled") === -1){
-        return true;
+        return false;
       }
     }
-    return false;
+    return true;
   };
 
   Calendar.prototype.updateSelection = function (span) {
-    var calendar = this.html,
-        day = this.date.getUTCDate(),
-        month = this.date.getUTCMonth();
-    if(calendar.current.cdata.day !== day){
-      this.removeSelection();
-      if(span === undefined){
-        for (var i = 0; i < this.html.children.length; i++) {
-          for (var j = 0; j < this.html.children[i].children.length; j++) {
-            if(this.html.children[i].children[j].cdata.day === day && this.html.children[i].children[j].cdata.month === month){
-              this.newSelection(this.html.children[i].children[j]);
-            }
-          }
+    var calendar = this.html;
+    this.removeSelection();
+    if(span === undefined){
+      for (var i = 0; i < this.html.children.length; i++) {
+        for (var j = 0; j < this.html.children[i].children.length; j++) {
+          this.applyClass(this.html.children[i].children[j]);
         }
-      }else{
-        this.newSelection(span);
+        this.html.children[i].cdata.disabled = this._isRowDisabled(this.html.children[i]);
       }
+    }else{
+      this.newSelection(span);
+    }
+  };
+
+  Calendar.prototype.applyClass = function (span) {
+    var span_date = new Date(span.cdata.year, span.cdata.month, span.cdata.day);
+    span.className = "date-picker-day-cell disabled";
+    if((this.min_date !== undefined && span_date < this.min_date) ||
+       (this.max_date !== undefined && span_date > this.max_date)){
+      span.className = "date-picker-day-cell disabled";
+    }else if(span.cdata.day === this.date.getUTCDate() && span.cdata.month === this.date.getUTCMonth()){
+      this.newSelection(span);
+    }else if(span.cdata.month == this.date.getUTCMonth()){
+      span.className = "date-picker-day-cell";
     }
   };
 
@@ -239,7 +254,7 @@ var Calendar =
     if(target.className.indexOf("date-picker-day-cell") !== -1){
       target = target.parentNode;
     }
-    if(target.cdata.inMonth === true){
+    if(target.cdata.disabled === false){
       this.date.setUTCDate(target.cdata.start.getUTCDate());
       this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
       this.updateSelection(target.children[0]);
@@ -266,37 +281,53 @@ var Calendar =
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
-          if(e.data.min_date !== undefined && e.data.date instanceof Date){
+          if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+            (this.max_date === undefined || e.data.min_date < this.max_date)){
             this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+            if(this.date < this.min_date){
+              this.setDate(this.min_date);
+              this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+            }
           }
-          if(e.data.max_date !== undefined && e.data.date instanceof Date){
+          if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+            (this.min_date === undefined || e.data.max_date > this.min_date)){
             this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+            if(this.date > this.max_date){
+              this.setDate(this.max_date);
+              this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+            }
           }
         case Events.desc.update.cal:
-          if(e.data.date !== undefined && e.data.date instanceof Date){
+          if(e.data.date !== undefined){
             this.setDate(e.data.date);
           }
+          this.updateSelection();
           this.updateCalendarHTML();
           break;
         case Events.desc.request.decrement.day:
-          this.setDate(this.date.setDate(this.date.getUTCDate()-1));
+          this.setDate(DateUtils.dateAddDays(this.date, -1));
           this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
           this.updateCalendarHTML();
+          this.updateSelection();
           break;
-        case Events.desc.request.decrement.day:
-          this.setDate(this.date.setDate(this.date.getUTCDate()+1));
+        case Events.desc.request.increment.day:
+          this.setDate(DateUtils.dateAddDays(this.date, 1));
           this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
           this.updateCalendarHTML();
+          this.updateSelection();
           break;
         case Events.desc.request.decrement.week:
+          console.log(DateUtils.getDateInPreviousWeek(this.date));
           this.setDate(DateUtils.getDateInPreviousWeek(this.date));
           this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
           this.updateCalendarHTML();
           this.updateSelection();
           break;
         case Events.desc.request.increment.week:
+          console.log(DateUtils.getDateInPreviousWeek(this.date));
           this.setDate(DateUtils.getDateInNextWeek(this.date));
           this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
+          this.updateCalendarHTML();
           this.updateSelection();
           break;
         default:

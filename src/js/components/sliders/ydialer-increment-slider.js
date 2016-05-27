@@ -46,6 +46,24 @@ var YDialerIncrementSlider = (function(){
     this.callCallback(YDialerIncrementSlider.prototype.enum.callbacks.datechange, date);
   };
 
+  YDialerIncrementSlider.prototype.setMinValue = function(value){
+    if(value instanceof Date &&
+      (this.max_date === undefined || value < this.max_date)){
+      this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+      this.min_value = this.min_date;
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
+    }
+  };
+
+  YDialerIncrementSlider.prototype.setMaxValue = function(value){
+    if(value instanceof Date &&
+      (this.min_date === undefined || value > this.min_date)){
+      this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
+      this.max_value = this.max_date;
+      this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
+    }
+  };
+
   YDialerIncrementSlider.prototype.updateRange = function () {
     var medianyear = this.date.getUTCFullYear(),
         factor = (8 - NumberUtils.mod(medianyear, 8));
@@ -121,11 +139,11 @@ var YDialerIncrementSlider = (function(){
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
-          if(e.data.min_date !== undefined && e.data.date instanceof Date){
-            this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+          if(e.data.min_date !== undefined){
+            this.setMinValue(e.data.min_date);
           }
-          if(e.data.max_date !== undefined && e.data.date instanceof Date && e.data.max_date >= e.data.min_date){
-            this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+          if(e.data.max_date !== undefined){
+            this.setMaxValue(e.data.max_date);
           }
         case Events.desc.update.yds:
           if(e.data.date !== undefined && e.data.date instanceof Date){

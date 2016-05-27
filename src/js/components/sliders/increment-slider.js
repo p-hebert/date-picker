@@ -24,6 +24,8 @@ var IncrementSlider = (function(){
       notify: "notify",
       emit: "emit",
       prev: "prev",
+      maxchange: "maxchange",
+      minchange: "minchange",
       valuechange: "valuechange",
       next: "next",
       event: "event"

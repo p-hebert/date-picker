@@ -135,12 +135,22 @@ affect the DatePicker inner state.
 
 | Method        | Description                              | Stable?      |
 | ------------- | ---------------------------------------- | ------------ |
-| `setDate(Date: date)`     | Sets the date of the DatePicker          | **No**       |
-| `setMinDate(Date: date)`  | Sets the max date of the DatePicker      | **No**       |
-| `setMaxDate(Date: date)`  | Sets the min date of the DatePicker      | **No**       |
-| `changeScale(string: scale)` | Changes the scale of the DatePicker      | **Yes**      |
+| `getAPI()`  | Provides a proxy comprised of all the API calls listed below | **Yes**       |
+| `getDate()` | Accessor for the current date | **Yes**       |
+| `setDate(Date: date)` | Mutator for the current date | **Yes**       |
+| `getMinDate()`  | Accessor for the min date      | **Yes**       |
+| `setMinDate(Date: date)`  | Mutator for the max date      | **Yes**       |
+| `getMinDate()`  | Accessor for the max date      | **Yes**       |
+| `setMaxDate(Date: date)`  | Mutator for the min date      | **Yes**       |
+| `getScales()` | Returns the four scales for the date as an object | **Yes**       |
+| `getScale()` | Accessor for the current scale | **Yes**       |
+| `changeScale(string: scale)` | Mutator for the current scale  | **Yes**      |
 | `addEventListener(string: e, function: callback)` | Adds an event listener to the specified event. Event must be available in `DatePicker.prototype.enum.callbacks`. See note below for more details. | **Yes**      |
+| `getComponents()` | Returns the list of components listed in `DatePicker.prototype.enum.components` | **Yes** |
 | `getComponent(string: comp)` | Returns the requested component. Must be listed in `DatePicker.prototype.enum.components` | **Yes** |
+| `commit()` | Overrides the previous date selection with current date selection. Emits a 'commit' event. By default the DatePicker calls this method when the user clicks outside of the dropdown zone and closes the dropdown.  | **Yes**       |
+| `rollback()` | Overrides the current date selection with previous date selection. Emits a 'rollback' event. | **Yes**       |
+| `patchSVGURLs()` | Applies the SVG patch for the bug listed [here](https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2). Called on initialization by default. | **Yes**       |
 
 #### Notes on API
 
@@ -156,17 +166,8 @@ affect the DatePicker inner state.
 
 ## Currently Known Issues
 
-- Most components won't work if no max/min are specified.
-- Max/Min cannot be changed on the fly yet
-- Changing from one week to another through the PickerControls will result in
-  the week calendar failing to update correctly if the week is completely in
-  the following month from the one displayed but is displayed as a sixth row
-  in the calendar view.
-- Changing from one day to another through the PickerControls when in the day
-  scale does not update the calendar view.
-- It is suspected that the PickerControls could introduce a way to go beyond
-  the boundaries (max/min) if an inconsistency is found.
 - The French version is buggy at best.
+- There seems to be some issues with the SVG arrows' links to the icons.
 
 ## Authorship
 

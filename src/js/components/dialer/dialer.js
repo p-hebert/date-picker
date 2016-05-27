@@ -65,7 +65,7 @@ var Dialer = (function(){
   };
 
   Dialer.prototype.setDate = function (date) {
-    if(date instanceof Date && (this.min_date !== undefined || date > this.min_date) && (this.max_date !== undefined || date < this.max_date)){
+    if(date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)){
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
     }
   };
@@ -120,8 +120,7 @@ var Dialer = (function(){
       for(i = 0; i < 8; i++){
         span = document.createElement('span');
         span.ddata = {
-          //TODO: to review
-          year : this.init_max - i + this.index*8
+          year : this.init_max - (8-i) + this.index*8
         };
         span.innerHTML = span.ddata.year;
         this.applyClass(span, dialer);
@@ -232,15 +231,17 @@ var Dialer = (function(){
     if(e.scope === Events.scope.broadcast){
       switch(e.desc){
         case Events.desc.update.partial:
-          if(e.data.min_date !== undefined && e.data.date instanceof Date){
-            //TODO: create method that revises the HTML when the min_date is changed
+          if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+            (this.max_date === undefined || e.data.min_date < this.max_date)){
             this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+            this.updateSelection();
           }
-          if(e.data.max_date !== undefined && e.data.date instanceof Date){
-            //TODO: create method that revises the HTML when the max_date is changed
+          if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+            (this.min_date === undefined || e.data.max_date > this.min_date)){
             this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+            this.updateSelection();
           }
-          if(e.data.date !== undefined && e.data.date instanceof Date){
+          if(e.data.date !== undefined){
             this.setDate(e.data.date);
             if(this.scale === Dialer.prototype.enum.scales.year){
               this.updateDialerHTML();
