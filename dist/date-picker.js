@@ -1,4 +1,4 @@
-(function(){
+(function() {
 
   var Events = {
     scope: {
@@ -409,347 +409,362 @@
   }
   
   var Calendar =
-  (function(){
+    (function() {
   
-    function Calendar(options, component){
-      //super()
-      component = component === undefined? Calendar.prototype.component : component;
-      Colleague.call(this, options.mediator, component);
-      this.mediation.events.emit.cupdate = this._constructEventString(Events.scope.emit, Events.desc.update.cal);
+      function Calendar(options, component) {
+        //super()
+        component = component === undefined ? Calendar.prototype.component : component;
+        Colleague.call(this, options.mediator, component);
+        this.mediation.events.emit.commit = this._constructEventString(Events.scope.emit, Events.desc.commit);
+        this.mediation.events.emit.cupdate = this._constructEventString(Events.scope.emit, Events.desc.update.cal);
   
-      //Upper/Lower bounds to date value
-      this.min_date = options.min_date instanceof Date ?
-                      new Date(options.min_date.getUTCFullYear(), options.min_date.getUTCMonth(), options.min_date.getUTCDate()) :
-                      undefined;
-      this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
-                      new Date(options.max_date.getUTCFullYear(), options.max_date.getUTCMonth(), options.max_date.getUTCDate()) :
-                      undefined;
+        //Upper/Lower bounds to date value
+        this.min_date = options.min_date instanceof Date ?
+          new Date(options.min_date.getUTCFullYear(), options.min_date.getUTCMonth(), options.min_date.getUTCDate()) :
+          undefined;
+        this.max_date = options.max_date instanceof Date && options.max_date > this.min_date ?
+          new Date(options.max_date.getUTCFullYear(), options.max_date.getUTCMonth(), options.max_date.getUTCDate()) :
+          undefined;
   
-      //Date that is modified by the user
-      this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
+        //Date that is modified by the user
+        this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
   
-      //Scale for this instance
-      this.scale = (options.scale && Calendar.prototype.enum.scales[options.scale]) ?
-                   Calendar.prototype.enum.scales[options.scale] :
-                   Calendar.prototype.enum.scales.day;
+        //Scale for this instance
+        this.scale = (options.scale && Calendar.prototype.enum.scales[options.scale]) ?
+          Calendar.prototype.enum.scales[options.scale] :
+          Calendar.prototype.enum.scales.day;
   
-      this.months = {};
-      this.html = this.getCalendarHTML();
-    }
-  
-    //Binding the prototype of the Parent object
-    //Properties will be overriden on this one.
-    Calendar.prototype = Object.create(Colleague.prototype);
-  
-    //Binding the constructor to the prototype
-    Calendar.prototype.constructor = Colleague;
-  
-    //Component for Event Strings
-    Calendar.prototype.component = 'CALENDAR';
-  
-    Calendar.prototype.enum = {
-      scales: {
-        day : "day",
-        week : "week",
-      }
-    };
-  
-  
-    Calendar.prototype.getHTML = function(){
-      return this.html;
-    };
-  
-    Calendar.prototype.getDate = function () {
-      return this.prev_date;
-    };
-  
-    Calendar.prototype.setDate = function (date) {
-      if(date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)){
-        this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      }
-    };
-  
-    Calendar.prototype._initCalendarIndex = function () {
-      if(this.months[this.date.getUTCFullYear()] === undefined){
-        this.months[this.date.getUTCFullYear()] = {};
-      }
-    };
-  
-    Calendar.prototype.getCalendarHTML = function () {
-      this._initCalendarIndex();
-      var calendar;
-      if(this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()] !== undefined){
-        calendar = this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()];
-        return calendar;
-      }else{
-        calendar = this.generateHTML();
-        this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()] = calendar;
-        return calendar;
-      }
-    };
-  
-    Calendar.prototype.updateCalendarHTML = function () {
-      var oldc = this.html,
-          parentNode = this.html.parentNode;
-      if(!(oldc.cdata.year === this.date.getUTCFullYear() && oldc.cdata.month === this.date.getUTCMonth())){
-        parentNode.removeChild(oldc);
+        this.months = {};
         this.html = this.getCalendarHTML();
-        parentNode.appendChild(this.html);
-        this.updateSelection();
       }
-    };
   
-    Calendar.prototype.generateHTML = function () {
-      var self = this,
+      //Binding the prototype of the Parent object
+      //Properties will be overriden on this one.
+      Calendar.prototype = Object.create(Colleague.prototype);
+  
+      //Binding the constructor to the prototype
+      Calendar.prototype.constructor = Colleague;
+  
+      //Component for Event Strings
+      Calendar.prototype.component = 'CALENDAR';
+  
+      Calendar.prototype.enum = {
+        scales: {
+          day: "day",
+          week: "week",
+        }
+      };
+  
+  
+      Calendar.prototype.getHTML = function() {
+        return this.html;
+      };
+  
+      Calendar.prototype.getDate = function() {
+        return this.prev_date;
+      };
+  
+      Calendar.prototype.setDate = function(date) {
+        if (date instanceof Date && (this.min_date === undefined || date >= this.min_date) && (this.max_date === undefined || date <= this.max_date)) {
+          this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+        }
+      };
+  
+      Calendar.prototype._initCalendarIndex = function() {
+        if (this.months[this.date.getUTCFullYear()] === undefined) {
+          this.months[this.date.getUTCFullYear()] = {};
+        }
+      };
+  
+      Calendar.prototype.getCalendarHTML = function() {
+        this._initCalendarIndex();
+        var calendar;
+        if (this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()] !== undefined) {
+          calendar = this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()];
+          return calendar;
+        } else {
+          calendar = this.generateHTML();
+          this.months[this.date.getUTCFullYear()][this.date.getUTCMonth()] = calendar;
+          return calendar;
+        }
+      };
+  
+      Calendar.prototype.updateCalendarHTML = function() {
+        var oldc = this.html,
+          parentNode = this.html.parentNode;
+        if (!(oldc.cdata.year === this.date.getUTCFullYear() && oldc.cdata.month === this.date.getUTCMonth())) {
+          parentNode.removeChild(oldc);
+          this.html = this.getCalendarHTML();
+          parentNode.appendChild(this.html);
+          this.updateSelection();
+        }
+      };
+  
+      Calendar.prototype.generateHTML = function() {
+        var self = this,
           calendar = document.createElement('div'),
           daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth()),
           daysInPrevMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), NumberUtils.mod(this.date.getUTCMonth() - 1, 12)),
           firstDayOfMonth = DateUtils.firstOfMonth(this.date),
           callback;
-      if(this.scale === Calendar.prototype.enum.scales.day){
-        callback = function(e){
+        if (this.scale === Calendar.prototype.enum.scales.day) {
+          callback = function(e) {
             self.onSpanClick(e.target);
-        };
-      }else if(this.scale === Calendar.prototype.enum.scales.week){
-        callback = function(e){
+          };
+        } else if (this.scale === Calendar.prototype.enum.scales.week) {
+          callback = function(e) {
             self.onRowClick(e.target);
-        };
-      }
-  
-      calendar.className = "date-picker-month-calendar";
-      var row, span, rows = [], spans = [], day = 1;
-      //Going through weeks
-      for(var i = 0 ; i < 6 ; i++){
-        //Creating week
-        row = document.createElement('div');
-        row.className = "date-picker-week-row";
-        if(this.scale === Calendar.prototype.enum.scales.week){
-          row.addEventListener('click', callback);
+          };
         }
-        var j = 0;
-        if(i === 0){
-          //First week potentially has days from another month.
-          for(; j < firstDayOfMonth ; j++){
+  
+        calendar.className = "date-picker-month-calendar";
+        var row, span, rows = [],
+          spans = [],
+          day = 1;
+        //Going through weeks
+        for (var i = 0; i < 6; i++) {
+          //Creating week
+          row = document.createElement('div');
+          row.className = "date-picker-week-row";
+          if (this.scale === Calendar.prototype.enum.scales.week) {
+            row.addEventListener('click', callback);
+          }
+          var j = 0;
+          if (i === 0) {
+            //First week potentially has days from another month.
+            for (; j < firstDayOfMonth; j++) {
+              span = document.createElement('span');
+              span.className = "date-picker-day-cell disabled";
+              span.innerHTML = daysInPrevMonth - (firstDayOfMonth - (j + 1));
+              span.cdata = {
+                selectable: false,
+                day: daysInPrevMonth - (firstDayOfMonth - j),
+                month: NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
+                year: NumberUtils.mod(this.date.getUTCMonth() - 1, 12) === 11 ? this.date.getUTCFullYear() - 1 : this.date.getUTCFullYear()
+              };
+              row.appendChild(span);
+              spans.push(span);
+            }
+          }
+          //Starting at j = x where x is either 0 if past first week or x is firstDayOfMonth
+          for (; j < 7; j++) {
             span = document.createElement('span');
-            span.className = "date-picker-day-cell disabled";
-            span.innerHTML = daysInPrevMonth - (firstDayOfMonth - (j+1));
             span.cdata = {
-              selectable: false,
-              day: daysInPrevMonth - (firstDayOfMonth - j),
-              month: NumberUtils.mod(this.date.getUTCMonth()-1,12),
-              year: NumberUtils.mod(this.date.getUTCMonth()-1,12) === 11 ? this.date.getUTCFullYear()-1 :this.date.getUTCFullYear()
+              selectable: day <= daysInMonth,
+              //Takes in account days of next month
+              day: day > daysInMonth ? day - daysInMonth : day,
+              month: day > daysInMonth ? NumberUtils.mod(this.date.getUTCMonth() + 1, 12) : this.date.getUTCMonth(),
+              year: day > daysInMonth && NumberUtils.mod(this.date.getUTCMonth() + 1, 12) === 0 ?
+                this.date.getUTCFullYear() + 1 : this.date.getUTCFullYear()
             };
+            //Default class
+            span.className = "date-picker-day-cell";
+  
+            //If greater than daysInMonth, the date is in next month and should be disabled.
+            if (day > daysInMonth) {
+              span.className = "date-picker-day-cell disabled";
+            } else if (span.cdata.day === this.date.getUTCDate()) {
+              if (this.scale === Calendar.prototype.enum.scales.day) {
+                span.className = "date-picker-day-cell active";
+                calendar.current = span;
+              } else if (span.cdata.day === this.date.getUTCDate() && this.scale === Calendar.prototype.enum.scales.week) {
+                row.className = "date-picker-week-row active";
+                calendar.current = span;
+              }
+            }
+            span.innerHTML = span.cdata.day;
+            if (this.scale === Calendar.prototype.enum.scales.day) {
+              span.addEventListener('click', callback);
+            }
             row.appendChild(span);
             spans.push(span);
+            day++;
           }
-        }
-        //Starting at j = x where x is either 0 if past first week or x is firstDayOfMonth
-        for(; j < 7 ; j++){
-          span = document.createElement('span');
-          span.cdata = {
-            selectable: day <= daysInMonth,
-            //Takes in account days of next month
-            day: day > daysInMonth ? day - daysInMonth : day,
-            month: day > daysInMonth ? NumberUtils.mod(this.date.getUTCMonth()+1,12) : this.date.getUTCMonth(),
-            year: day > daysInMonth && NumberUtils.mod(this.date.getUTCMonth()+1,12) === 0 ?
-                  this.date.getUTCFullYear()+1 : this.date.getUTCFullYear()
+          row.cdata = {
+            start: new Date(
+              row.children[0].cdata.year,
+              row.children[0].cdata.month,
+              row.children[0].cdata.day
+            ),
+            end: new Date(
+              row.children[6].cdata.year,
+              row.children[6].cdata.month,
+              row.children[6].cdata.day
+            ),
           };
-          //Default class
-          span.className = "date-picker-day-cell";
-  
-          //If greater than daysInMonth, the date is in next month and should be disabled.
-          if(day > daysInMonth){
-            span.className = "date-picker-day-cell disabled";
-          }else if(span.cdata.day === this.date.getUTCDate()){
-            if(this.scale === Calendar.prototype.enum.scales.day){
-              span.className = "date-picker-day-cell active";
-              calendar.current = span;
-            }else if(span.cdata.day === this.date.getUTCDate() && this.scale === Calendar.prototype.enum.scales.week){
-              row.className = "date-picker-week-row active";
-              calendar.current = span;
-            }
-          }
-          span.innerHTML = span.cdata.day;
-          if(this.scale === Calendar.prototype.enum.scales.day){
-            span.addEventListener('click', callback);
-          }
-          row.appendChild(span);
-          spans.push(span);
-          day++;
+          row.cdata.disabled = self._isRowDisabled(row);
+          rows.push(row);
+          calendar.appendChild(row);
         }
-        row.cdata = {
-          start: new Date(
-                            row.children[0].cdata.year,
-                            row.children[0].cdata.month,
-                            row.children[0].cdata.day
-                         ),
-          end:   new Date(
-                            row.children[6].cdata.year,
-                            row.children[6].cdata.month,
-                            row.children[6].cdata.day
-                         ),
+        calendar.cdata = {
+          year: this.date.getUTCFullYear(),
+          month: this.date.getUTCMonth()
         };
-        row.cdata.disabled = self._isRowDisabled(row);
-        rows.push(row);
-        calendar.appendChild(row);
-      }
-      calendar.cdata = {
-        year: this.date.getUTCFullYear(),
-        month: this.date.getUTCMonth()
+        return calendar;
       };
-      return calendar;
-    };
   
-    Calendar.prototype._isRowDisabled = function (row) {
-      if((this.min_date !== undefined && row.cdata.end < this.min_date) ||
-         (this.max_date !== undefined && row.cdata.start > this.max_date)){
-        return true;
-      }
-      for(var i = 0 ; i < row.children.length; i++){
-        if(row.children[i].className.indexOf("disabled") === -1){
-          return false;
+      Calendar.prototype._isRowDisabled = function(row) {
+        if ((this.min_date !== undefined && row.cdata.end < this.min_date) ||
+          (this.max_date !== undefined && row.cdata.start > this.max_date)) {
+          return true;
         }
-      }
-      return true;
-    };
-  
-    Calendar.prototype.updateSelection = function (span) {
-      var calendar = this.html;
-      this.removeSelection();
-      if(span === undefined){
-        for (var i = 0; i < this.html.children.length; i++) {
-          for (var j = 0; j < this.html.children[i].children.length; j++) {
-            this.applyClass(this.html.children[i].children[j]);
+        for (var i = 0; i < row.children.length; i++) {
+          if (row.children[i].className.indexOf("disabled") === -1) {
+            return false;
           }
-          this.html.children[i].cdata.disabled = this._isRowDisabled(this.html.children[i]);
         }
-      }else{
-        this.newSelection(span);
-      }
-    };
+        return true;
+      };
   
-    Calendar.prototype.applyClass = function (span) {
-      var span_date = new Date(span.cdata.year, span.cdata.month, span.cdata.day);
-      span.className = "date-picker-day-cell disabled";
-      if((this.min_date !== undefined && span_date < this.min_date) ||
-         (this.max_date !== undefined && span_date > this.max_date)){
+      Calendar.prototype.updateSelection = function(span) {
+        var calendar = this.html;
+        this.removeSelection();
+        if (span === undefined) {
+          for (var i = 0; i < this.html.children.length; i++) {
+            for (var j = 0; j < this.html.children[i].children.length; j++) {
+              this.applyClass(this.html.children[i].children[j]);
+            }
+            this.html.children[i].cdata.disabled = this._isRowDisabled(this.html.children[i]);
+          }
+        } else {
+          this.newSelection(span);
+        }
+      };
+  
+      Calendar.prototype.applyClass = function(span) {
+        var span_date = new Date(span.cdata.year, span.cdata.month, span.cdata.day);
         span.className = "date-picker-day-cell disabled";
-      }else if(span.cdata.day === this.date.getUTCDate() && span.cdata.month === this.date.getUTCMonth()){
-        this.newSelection(span);
-      }else if(span.cdata.month == this.date.getUTCMonth()){
-        span.className = "date-picker-day-cell";
-      }
-    };
-  
-    Calendar.prototype.newSelection = function (span) {
-      if(span.cdata.day === this.date.getUTCDate()){
-        this.html.current = span;
-        if(this.scale === Calendar.prototype.enum.scales.day){
-          this.html.current.className = "date-picker-day-cell active";
-        }else if (this.scale === Calendar.prototype.enum.scales.week){
-          this.html.current.parentNode.className = "date-picker-week-row active";
+        if ((this.min_date !== undefined && span_date < this.min_date) ||
+          (this.max_date !== undefined && span_date > this.max_date)) {
+          span.className = "date-picker-day-cell disabled";
+        } else if (span.cdata.day === this.date.getUTCDate() && span.cdata.month === this.date.getUTCMonth()) {
+          this.newSelection(span);
+        } else if (span.cdata.month == this.date.getUTCMonth()) {
+          span.className = "date-picker-day-cell";
         }
-      }
-    };
+      };
   
-    Calendar.prototype.removeSelection = function () {
-      if(this.scale === Calendar.prototype.enum.scales.day){
-        this.html.current.className = "date-picker-day-cell";
-      }else if (this.scale === Calendar.prototype.enum.scales.week){
-        this.html.current.parentNode.className = "date-picker-week-row";
-      }
-    };
-  
-    Calendar.prototype.onRowClick = function (target) {
-      if(target.className.indexOf("date-picker-day-cell") !== -1){
-        target = target.parentNode;
-      }
-      if(target.cdata.disabled === false){
-        this.date.setUTCDate(target.cdata.start.getUTCDate());
-        this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-        this.updateSelection(target.children[0]);
-      }
-    };
-  
-    Calendar.prototype.onSpanClick = function (span) {
-      var daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth());
-      if(span.cdata.selectable === true && span.cdata.day <= daysInMonth && span.cdata.day > 0){
-        this.date.setUTCDate(span.cdata.day);
-        this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-        this.updateSelection(span);
-      }
-    };
-  
-    Calendar.prototype.subscribe = function (parent) {
-      if(parent !== undefined){
-        this.mediator.subscribe(this.mediation.events.emit.cupdate, parent);
-      }
-    };
-  
-    Calendar.prototype.notify = function (e) {
-  
-      if(e.scope === Events.scope.broadcast){
-        switch(e.desc){
-          case Events.desc.update.partial:
-            if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
-              (this.max_date === undefined || e.data.min_date < this.max_date)){
-              this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
-              if(this.date < this.min_date){
-                this.setDate(this.min_date);
-                this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-              }
-            }
-            if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
-              (this.min_date === undefined || e.data.max_date > this.min_date)){
-              this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
-              if(this.date > this.max_date){
-                this.setDate(this.max_date);
-                this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-              }
-            }
-          case Events.desc.update.cal:
-            if(e.data.date !== undefined){
-              this.setDate(e.data.date);
-            }
-            this.updateSelection();
-            this.updateCalendarHTML();
-            break;
-          case Events.desc.request.decrement.day:
-            this.setDate(DateUtils.dateAddDays(this.date, -1));
-            this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-            this.updateCalendarHTML();
-            this.updateSelection();
-            break;
-          case Events.desc.request.increment.day:
-            this.setDate(DateUtils.dateAddDays(this.date, 1));
-            this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-            this.updateCalendarHTML();
-            this.updateSelection();
-            break;
-          case Events.desc.request.decrement.week:
-            console.log(DateUtils.getDateInPreviousWeek(this.date));
-            this.setDate(DateUtils.getDateInPreviousWeek(this.date));
-            this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-            this.updateCalendarHTML();
-            this.updateSelection();
-            break;
-          case Events.desc.request.increment.week:
-            console.log(DateUtils.getDateInPreviousWeek(this.date));
-            this.setDate(DateUtils.getDateInNextWeek(this.date));
-            this.emit(this.mediation.events.emit.cupdate, {date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate())});
-            this.updateCalendarHTML();
-            this.updateSelection();
-            break;
-          default:
-            break;
+      Calendar.prototype.newSelection = function(span) {
+        if (span.cdata.day === this.date.getUTCDate()) {
+          this.html.current = span;
+          if (this.scale === Calendar.prototype.enum.scales.day) {
+            this.html.current.className = "date-picker-day-cell active";
+          } else if (this.scale === Calendar.prototype.enum.scales.week) {
+            this.html.current.parentNode.className = "date-picker-week-row active";
+          }
         }
-      }
-      this.constructor.prototype.notify.call(this, e);
-    };
+      };
   
-    return Calendar;
-  })();
+      Calendar.prototype.removeSelection = function() {
+        if (this.scale === Calendar.prototype.enum.scales.day) {
+          this.html.current.className = "date-picker-day-cell";
+        } else if (this.scale === Calendar.prototype.enum.scales.week) {
+          this.html.current.parentNode.className = "date-picker-week-row";
+        }
+      };
   
+      Calendar.prototype.onRowClick = function(target) {
+        if (target.className.indexOf("date-picker-day-cell") !== -1) {
+          target = target.parentNode;
+        }
+        if (target.cdata.disabled === false) {
+          this.date.setUTCDate(target.cdata.start.getUTCDate());
+          this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+          this.updateSelection(target.children[0]);
+        }
+      };
+  
+      Calendar.prototype.onSpanClick = function(span) {
+        var daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear(), this.date.getUTCMonth());
+        if (span.cdata.selectable === true && span.cdata.day <= daysInMonth && span.cdata.day > 0) {
+          this.date.setUTCDate(span.cdata.day);
+          this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+          this.updateSelection(span);
+        }
+      };
+  
+      Calendar.prototype.subscribe = function(parent) {
+        if (parent !== undefined) {
+          this.mediator.subscribe(this.mediation.events.emit.cupdate, parent);
+          this.mediator.subscribe(this.mediation.events.emit.commit, parent);
+        }
+      };
+  
+      Calendar.prototype.notify = function(e) {
+  
+        if (e.scope === Events.scope.broadcast) {
+          switch (e.desc) {
+            case Events.desc.update.partial:
+              if (e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+                (this.max_date === undefined || e.data.min_date < this.max_date)) {
+                this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
+                if (this.date < this.min_date) {
+                  this.setDate(this.min_date);
+                  this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+                }
+              }
+              if (e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+                (this.min_date === undefined || e.data.max_date > this.min_date)) {
+                this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
+                if (this.date > this.max_date) {
+                  this.setDate(this.max_date);
+                  this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+                }
+              }
+            case Events.desc.update.cal:
+              if (e.data.date !== undefined) {
+                this.setDate(e.data.date);
+              }
+              this.updateSelection();
+              this.updateCalendarHTML();
+              break;
+            case Events.desc.request.decrement.day:
+              this.setDate(DateUtils.dateAddDays(this.date, -1));
+              this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              if (e.data.commit) {
+                this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              }
+              this.updateCalendarHTML();
+              this.updateSelection();
+              break;
+            case Events.desc.request.increment.day:
+              this.setDate(DateUtils.dateAddDays(this.date, 1));
+              this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              if (e.data.commit) {
+                this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              }
+              this.updateCalendarHTML();
+              this.updateSelection();
+              break;
+            case Events.desc.request.decrement.week:
+              console.log(DateUtils.getDateInPreviousWeek(this.date));
+              this.setDate(DateUtils.getDateInPreviousWeek(this.date));
+              this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              if (e.data.commit) {
+                this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              }
+              this.updateCalendarHTML();
+              this.updateSelection();
+              break;
+            case Events.desc.request.increment.week:
+              console.log(DateUtils.getDateInPreviousWeek(this.date));
+              this.setDate(DateUtils.getDateInNextWeek(this.date));
+              this.emit(this.mediation.events.emit.cupdate, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              if (e.data.commit) {
+                this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+              }
+              this.updateCalendarHTML();
+              this.updateSelection();
+              break;
+            default:
+              break;
+          }
+        }
+        this.constructor.prototype.notify.call(this, e);
+      };
+  
+      return Calendar;
+    })();
   var Dialer = (function(){
   
     function Dialer(options, component){
@@ -1155,11 +1170,12 @@
   
   })();
   
-  var YearIncrementSlider = (function(){
-    function YearIncrementSlider(options, component){
+  var YearIncrementSlider = (function() {
+    function YearIncrementSlider(options, component) {
       //super()
-      component = component === undefined? YearIncrementSlider.prototype.component : component;
+      component = component === undefined ? YearIncrementSlider.prototype.component : component;
       IncrementSlider.call(this, options, component);
+      this.mediation.events.emit.commit = this._constructEventString(Events.scope.emit, Events.desc.commit);
       this.mediation.events.emit.yupdate = this._constructEventString(Events.scope.emit, Events.desc.update.yis);
       this.date = this.value;
       this.min_date = this.min_value;
@@ -1178,27 +1194,27 @@
     YearIncrementSlider.prototype.component = 'YINCSLIDER';
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.setValue = function(value){
+     * @override
+     **/
+    YearIncrementSlider.prototype.setValue = function(value) {
       this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.value = this.date;
       this.setUIValue();
       this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
-    YearIncrementSlider.prototype.setMinValue = function(value){
-      if(value instanceof Date &&
-        (this.max_date === undefined || value < this.max_date)){
+    YearIncrementSlider.prototype.setMinValue = function(value) {
+      if (value instanceof Date &&
+        (this.max_date === undefined || value < this.max_date)) {
         this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
         this.min_value = this.min_date;
         this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
       }
     };
   
-    YearIncrementSlider.prototype.setMaxValue = function(value){
-      if(value instanceof Date &&
-        (this.min_date === undefined || value > this.min_date)){
+    YearIncrementSlider.prototype.setMaxValue = function(value) {
+      if (value instanceof Date &&
+        (this.min_date === undefined || value > this.min_date)) {
         this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
         this.max_value = this.max_date;
         this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
@@ -1206,129 +1222,138 @@
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.setUIValue = function(){
+     * @override
+     **/
+    YearIncrementSlider.prototype.setUIValue = function() {
       this.input.children[0].innerHTML = this.date.getUTCFullYear();
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.testMin = function () {
+     * @override
+     **/
+    YearIncrementSlider.prototype.testMin = function() {
       return this.min_date !== undefined && this.min_date.getUTCFullYear() === this.date.getUTCFullYear();
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.testMax = function () {
+     * @override
+     **/
+    YearIncrementSlider.prototype.testMax = function() {
       return this.max_date !== undefined && this.max_date.getUTCFullYear() === this.date.getUTCFullYear();
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.onPrevClick = function () {
-      if(this.prev.isDisabled === true){
+     * @override
+     **/
+    YearIncrementSlider.prototype.onPrevClick = function() {
+      if (this.prev.isDisabled === true) {
         return;
       }
       var year = this.date.getUTCFullYear() - 1,
-          daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, this.date.getUTCMonth()),
-          uiday = false, uimonth = false, uiyear = false;
+        daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, this.date.getUTCMonth()),
+        uiday = false,
+        uimonth = false,
+        uiyear = false;
       //Checks if action is legal (not going below min year)
-      if(this.min_date === undefined || this.min_date.getUTCFullYear() <= year){
+      if (this.min_date === undefined || this.min_date.getUTCFullYear() <= year) {
         //To prevent invalid dates like Feb 30th
-        if(this.date.getUTCDate() > daysInMonth){
+        if (this.date.getUTCDate() > daysInMonth) {
   
           this.date.setUTCDate(daysInMonth);
         }
   
         this.date.setUTCFullYear(year);
         //Making sure that we are not going below the min date on the smaller scales than year
-        if(this.min_date !== undefined && this.min_date.getUTCFullYear() === this.date.getUTCFullYear()){
-          if(this.min_date.getUTCMonth() > this.date.getUTCMonth()){
+        if (this.min_date !== undefined && this.min_date.getUTCFullYear() === this.date.getUTCFullYear()) {
+          if (this.min_date.getUTCMonth() > this.date.getUTCMonth()) {
             this.date.setUTCMonth(this.min_date.getUTCMonth());
             this.date.setUTCDate(this.min_date.getUTCDate());
-          }else if(this.min_date.getUTCDay() > this.date.getUTCDate() && this.min_date.getUTCMonth() === this.date.getUTCMonth()){
+          } else if (this.min_date.getUTCDay() > this.date.getUTCDate() && this.min_date.getUTCMonth() === this.date.getUTCMonth()) {
             this.date.setUTCDate(this.min_date.getUTCDate());
           }
         }
         this.setValue(this.date);
         this.updateUIControls();
-        this.emit(this.mediation.events.emit.yupdate, {date: this.date});
+        this.emit(this.mediation.events.emit.yupdate, { date: this.date });
         IncrementSlider.prototype.onPrevClick.call(this);
       }
       //else do nothing
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.onNextClick = function () {
-      if(this.next.isDisabled === true){
+     * @override
+     **/
+    YearIncrementSlider.prototype.onNextClick = function() {
+      if (this.next.isDisabled === true) {
         return;
       }
       var year = this.date.getUTCFullYear() + 1,
-          daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, this.date.getUTCMonth());
+        daysInMonth = DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, this.date.getUTCMonth());
       //Checks if action is legal (not going below min year)
-      if(this.max_date === undefined || this.max_date.getUTCFullYear() >= year){
+      if (this.max_date === undefined || this.max_date.getUTCFullYear() >= year) {
   
         //To prevent invalid dates like Feb 30th
-        if(this.date.getUTCDate() > daysInMonth){
+        if (this.date.getUTCDate() > daysInMonth) {
           this.date.setUTCDate(daysInMonth);
         }
   
         this.date.setUTCFullYear(year);
   
         //Making sure that we are not going above the max date on the smaller scales than year
-        if(this.max_date !== undefined && this.max_date.getUTCFullYear() === year){
-          if(this.max_date.getUTCMonth() < this.date.getUTCMonth()){
+        if (this.max_date !== undefined && this.max_date.getUTCFullYear() === year) {
+          if (this.max_date.getUTCMonth() < this.date.getUTCMonth()) {
             this.date.setUTCMonth(this.max_date.getUTCMonth());
             this.date.setUTCDate(this.max_date.getUTCDate());
-          }else if(this.max_date !== undefined && this.max_date.getUTCDay() > this.date.getUTCDate() && this.min_date.getUTCMonth() === this.date.getUTCMonth()){
+          } else if (this.max_date !== undefined && this.max_date.getUTCDay() > this.date.getUTCDate() && this.min_date.getUTCMonth() === this.date.getUTCMonth()) {
             this.date.setUTCDate(this.max_date.getUTCDate());
           }
         }
   
         this.setValue(this.date);
         this.updateUIControls();
-        this.emit(this.mediation.events.emit.yupdate, {date: this.date});
+        this.emit(this.mediation.events.emit.yupdate, { date: this.date });
         IncrementSlider.prototype.onNextClick.call(this);
       }
       //else do nothing
     };
   
-    YearIncrementSlider.prototype.subscribe = function (parent) {
-      if(parent !== undefined){
+    YearIncrementSlider.prototype.subscribe = function(parent) {
+      if (parent !== undefined) {
         this.mediator.subscribe(this.mediation.events.emit.yupdate, parent);
+        this.mediator.subscribe(this.mediation.events.emit.commit, parent);
       }
     };
   
     /**
-    * @override
-    **/
-    YearIncrementSlider.prototype.notify = function (e) {
-      if(e.scope === Events.scope.broadcast){
-        switch(e.desc){
+     * @override
+     **/
+    YearIncrementSlider.prototype.notify = function(e) {
+      if (e.scope === Events.scope.broadcast) {
+        switch (e.desc) {
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined){
+            if (e.data.min_date !== undefined) {
               this.setMinValue(e.data.min_date);
             }
-            if(e.data.max_date !== undefined){
+            if (e.data.max_date !== undefined) {
               this.setMaxValue(e.data.max_date);
             }
           case Events.desc.update.yis:
-            if(e.data.date !== undefined && e.data.date instanceof Date){
+            if (e.data.date !== undefined && e.data.date instanceof Date) {
               this.setValue(e.data.date);
             }
             this.updateUIControls();
             break;
           case Events.desc.request.decrement.year:
             this.onPrevClick();
+            if (e.data.commit) {
+              this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+            }
             break;
           case Events.desc.request.increment.year:
             this.onNextClick();
+            if (e.data.commit) {
+              this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+            }
             break;
           default:
             break;
@@ -1339,16 +1364,16 @@
   
     return YearIncrementSlider;
   })();
-  
-  var MonthIncrementSlider = (function(){
-    function MonthIncrementSlider(options, component){
+  var MonthIncrementSlider = (function() {
+    function MonthIncrementSlider(options, component) {
       //super()
-      component = component === undefined? MonthIncrementSlider.prototype.component : component;
+      component = component === undefined ? MonthIncrementSlider.prototype.component : component;
       IncrementSlider.call(this, options, component);
+      this.mediation.events.emit.commit = this._constructEventString(Events.scope.emit, Events.desc.commit);
       this.mediation.events.emit.mupdate = this._constructEventString(Events.scope.emit, Events.desc.update.mis);
       this.lang = options.lang !== undefined &&
-                  MonthIncrementSlider.prototype.enum.languages[options.lang] !== undefined ?
-                  MonthIncrementSlider.prototype.enum.languages[options.lang] : 'en';
+        MonthIncrementSlider.prototype.enum.languages[options.lang] !== undefined ?
+        MonthIncrementSlider.prototype.enum.languages[options.lang] : 'en';
       this.date = this.value;
       this.min_date = this.min_value;
       this.max_date = this.max_value;
@@ -1375,27 +1400,27 @@
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.setValue = function(value){
+     * @override
+     **/
+    MonthIncrementSlider.prototype.setValue = function(value) {
       this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.value = this.date;
       this.setUIValue();
       this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
     };
   
-    MonthIncrementSlider.prototype.setMinValue = function(value){
-      if(value instanceof Date &&
-        (this.max_date === undefined || value < this.max_date)){
+    MonthIncrementSlider.prototype.setMinValue = function(value) {
+      if (value instanceof Date &&
+        (this.max_date === undefined || value < this.max_date)) {
         this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
         this.min_value = this.min_date;
         this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
       }
     };
   
-    MonthIncrementSlider.prototype.setMaxValue = function(value){
-      if(value instanceof Date &&
-        (this.min_date === undefined || value > this.min_date)){
+    MonthIncrementSlider.prototype.setMaxValue = function(value) {
+      if (value instanceof Date &&
+        (this.min_date === undefined || value > this.min_date)) {
         this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
         this.max_value = this.max_date;
         this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
@@ -1403,195 +1428,202 @@
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.setUIValue = function(){
+     * @override
+     **/
+    MonthIncrementSlider.prototype.setUIValue = function() {
       this.input.children[0].innerHTML = DateUtils.getMonthString(this.date.getUTCMonth(), this.lang);
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.testMin = function () {
+     * @override
+     **/
+    MonthIncrementSlider.prototype.testMin = function() {
       return this.min_date !== undefined &&
         this.min_date.getUTCFullYear() === this.date.getUTCFullYear() && this.min_date.getUTCMonth() === this.date.getUTCMonth();
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.testMax = function () {
+     * @override
+     **/
+    MonthIncrementSlider.prototype.testMax = function() {
       return this.max_date !== undefined &&
         this.max_date.getUTCFullYear() === this.date.getUTCFullYear() && this.max_date.getUTCMonth() === this.date.getUTCMonth();
     };
   
     /**
-    * @override
-    **/
+     * @override
+     **/
     MonthIncrementSlider.prototype.onPrevClick = function() {
-      if(this.prev.isDisabled === true){
+      if (this.prev.isDisabled === true) {
         return;
       }
       var self = this;
       var year = this.date.getUTCFullYear(),
-          month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
-          apply = false;
+        month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
+        apply = false;
       //If no min_date, no constraints.
-      if(this.min_date === undefined || this.min_date.getUTCFullYear() < year-1){
+      if (this.min_date === undefined || this.min_date.getUTCFullYear() < year - 1) {
         apply = true;
         this.decrementMonth();
-        if(month === 11){
+        if (month === 11) {
           this.date.setUTCFullYear(year - 1);
         }
-      //If min year is = to year, must check for month and day.
-      }else if(this.min_date.getUTCFullYear() === year && month !== 11){
+        //If min year is = to year, must check for month and day.
+      } else if (this.min_date.getUTCFullYear() === year && month !== 11) {
         //Check if action is valid
-        if(this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month){
+        if (this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month) {
           apply = true;
           this.decrementMonth();
         }
         //Granted min month = month
         //Resets the day if conflict between min day and currently selected day
-        if(this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()){
+        if (this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()) {
           this.date.setUTCDate(this.min_date.getUTCDate());
         }
   
-      }else if(this.min_date.getUTCFullYear() === year - 1 && month === 11){
-        if(this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month){
+      } else if (this.min_date.getUTCFullYear() === year - 1 && month === 11) {
+        if (this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month) {
           apply = true;
           this.decrementMonth();
           this.date.setUTCFullYear(year - 1);
         }
   
-        if(this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()){
+        if (this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()) {
           this.date.setUTCDate(this.min_date.getUTCDate());
         }
   
-      }else if(this.min_date.getUTCFullYear() === year - 1 && month !== 11){
+      } else if (this.min_date.getUTCFullYear() === year - 1 && month !== 11) {
         apply = true;
         this.decrementMonth();
       }
   
-      if(apply){
+      if (apply) {
         this.setValue(this.date);
         this.updateUIControls();
-        this.emit(this.mediation.events.emit.mupdate, {date: this.date});
+        this.emit(this.mediation.events.emit.mupdate, { date: this.date });
         IncrementSlider.prototype.onPrevClick.call(this);
       }
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.onNextClick = function () {
-      if(this.next.isDisabled === true){
+     * @override
+     **/
+    MonthIncrementSlider.prototype.onNextClick = function() {
+      if (this.next.isDisabled === true) {
         return;
       }
       var year = this.date.getUTCFullYear(),
-          month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
-          apply = false;
+        month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
+        apply = false;
       //If no max_date, no constraints.
-      if(this.max_date === undefined || this.max_date.getUTCFullYear() > year+1){
+      if (this.max_date === undefined || this.max_date.getUTCFullYear() > year + 1) {
         apply = true;
         this.incrementMonth();
-        if(month === 0){
+        if (month === 0) {
           this.date.setUTCFullYear(year + 1);
         }
-      //If max year is = to year, must check for month and day.
-      }else if(this.max_date.getUTCFullYear() === year && month !== 0){
+        //If max year is = to year, must check for month and day.
+      } else if (this.max_date.getUTCFullYear() === year && month !== 0) {
         //Check if action is valid
-        if(this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month){
+        if (this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month) {
           apply = true;
           this.incrementMonth();
         }
         //Granted max month = month
         //Resets the day if conflict between max day and currently selected day
-        if(this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()){
+        if (this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()) {
           this.date.setUTCDate(this.max_date.getUTCDate());
         }
   
-      }else if(this.max_date.getUTCFullYear() === year + 1 && month === 0){
-        if(this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month){
+      } else if (this.max_date.getUTCFullYear() === year + 1 && month === 0) {
+        if (this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month) {
           apply = true;
           this.incrementMonth();
           this.date.setUTCFullYear(year + 1);
         }
   
-        if(this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()){
+        if (this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()) {
           this.date.setUTCDate(this.max_date.getUTCDate());
         }
   
-      }else if(this.max_date.getUTCFullYear() === year + 1 && month !== 0){
+      } else if (this.max_date.getUTCFullYear() === year + 1 && month !== 0) {
         apply = true;
         this.incrementMonth();
-      }else{
+      } else {
         //do nothing
       }
   
-      if(apply){
+      if (apply) {
         this.setValue(this.date);
         this.updateUIControls();
-        this.emit(this.mediation.events.emit.mupdate, {date: this.date});
+        this.emit(this.mediation.events.emit.mupdate, { date: this.date });
         IncrementSlider.prototype.onNextClick.call(this);
       }
     };
   
-    MonthIncrementSlider.prototype.incrementMonth = function () {
+    MonthIncrementSlider.prototype.incrementMonth = function() {
       var month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
-          daysInMonth = month !== 0 ?
-                        DateUtils.daysInMonth(this.date.getUTCFullYear(), month):
-                        DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, month);
+        daysInMonth = month !== 0 ?
+        DateUtils.daysInMonth(this.date.getUTCFullYear(), month) :
+        DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, month);
       //To prevent invalid dates like Feb 30th
       //Takes in account change of year
-      if(this.date.getUTCDate() > daysInMonth){
+      if (this.date.getUTCDate() > daysInMonth) {
         this.date.setUTCDate(daysInMonth);
       }
       this.date.setUTCMonth(month);
     };
   
-    MonthIncrementSlider.prototype.decrementMonth = function () {
+    MonthIncrementSlider.prototype.decrementMonth = function() {
       var month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
-          daysInMonth = month !== 11 ?
-                        DateUtils.daysInMonth(this.date.getUTCFullYear(), month):
-                        DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, month);
+        daysInMonth = month !== 11 ?
+        DateUtils.daysInMonth(this.date.getUTCFullYear(), month) :
+        DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, month);
       //To prevent invalid dates like Feb 30th
       //Takes in account change of year
-      if(this.date.getUTCDate() > daysInMonth){
+      if (this.date.getUTCDate() > daysInMonth) {
         this.date.setUTCDate(daysInMonth);
       }
       this.date.setUTCMonth(month);
     };
   
-    MonthIncrementSlider.prototype.subscribe = function (parent) {
-      if(parent !== undefined){
+    MonthIncrementSlider.prototype.subscribe = function(parent) {
+      if (parent !== undefined) {
         this.mediator.subscribe(this.mediation.events.emit.mupdate, parent);
+        this.mediator.subscribe(this.mediation.events.emit.commit, parent);
       }
     };
   
     /**
-    * @override
-    **/
-    MonthIncrementSlider.prototype.notify = function (e) {
-      if(e.scope === Events.scope.broadcast){
-        switch(e.desc){
+     * @override
+     **/
+    MonthIncrementSlider.prototype.notify = function(e) {
+      if (e.scope === Events.scope.broadcast) {
+        switch (e.desc) {
           case Events.desc.update.partial:
-            if(e.data.min_date !== undefined){
+            if (e.data.min_date !== undefined) {
               this.setMinValue(e.data.min_date);
             }
-            if(e.data.max_date !== undefined){
+            if (e.data.max_date !== undefined) {
               this.setMaxValue(e.data.max_date);
             }
           case Events.desc.update.mis:
-            if(e.data.date !== undefined && e.data.date instanceof Date){
+            if (e.data.date !== undefined && e.data.date instanceof Date) {
               this.setValue(e.data.date);
             }
             this.updateUIControls();
             break;
           case Events.desc.request.decrement.month:
             this.onPrevClick();
+            if (e.data.commit) {
+              this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+            }
             break;
           case Events.desc.request.increment.month:
             this.onNextClick();
+            if (e.data.commit) {
+              this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+            }
             break;
           default:
             break;
@@ -1602,7 +1634,6 @@
   
     return MonthIncrementSlider;
   })();
-  
   var YDialerIncrementSlider = (function(){
     function YDialerIncrementSlider(options, component){
       //super()
@@ -1777,20 +1808,20 @@
   
   })();
   
-  var PickerControls = (function(){
-    function PickerControls(options, component){
+  var PickerControls = (function() {
+    function PickerControls(options, component) {
       //super()
-      component = component === undefined? PickerControls.prototype.component : component;
+      component = component === undefined ? PickerControls.prototype.component : component;
       IncrementSlider.call(this, options, component);
       this.generateEvents();
   
       //Upper/Lower bounds to date value
       this.min_date = options.min_date instanceof Date ?
-                      new Date(options.min_date.getUTCFullYear(), options.min_date.getUTCMonth(), options.min_date.getUTCDate()) :
-                      undefined;
-      this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
-                      new Date(options.max_date.getUTCFullYear(), options.max_date.getUTCMonth(), options.max_date.getUTCDate()) :
-                      undefined;
+        new Date(options.min_date.getUTCFullYear(), options.min_date.getUTCMonth(), options.min_date.getUTCDate()) :
+        undefined;
+      this.max_date = options.max_date instanceof Date && options.max_date > this.min_date ?
+        new Date(options.max_date.getUTCFullYear(), options.max_date.getUTCMonth(), options.max_date.getUTCDate()) :
+        undefined;
       this.min_value = this.min_date;
       this.max_value = this.max_date;
   
@@ -1799,11 +1830,11 @@
   
       //Scale for this instance
       this.scale = (options.scale && PickerControls.prototype.enum.scales[options.scale]) ?
-                   PickerControls.prototype.enum.scales[options.scale] :
-                   PickerControls.prototype.enum.scales.day;
+        PickerControls.prototype.enum.scales[options.scale] :
+        PickerControls.prototype.enum.scales.day;
       this.lang = options.lang !== undefined &&
-                   PickerControls.prototype.enum.languages[options.lang] !== undefined ?
-                   PickerControls.prototype.enum.languages[options.lang] : 'en';
+        PickerControls.prototype.enum.languages[options.lang] !== undefined ?
+        PickerControls.prototype.enum.languages[options.lang] : 'en';
       this.generateHTML();
     }
   
@@ -1823,10 +1854,10 @@
     PickerControls.prototype.enum = IncrementSlider.prototype.enum;
   
     PickerControls.prototype.enum.scales = {
-      day : "day",
-      week : "week",
-      month : "month",
-      year : "year"
+      day: "day",
+      week: "week",
+      month: "month",
+      year: "year"
     };
   
     PickerControls.prototype.enum.languages = {
@@ -1835,15 +1866,15 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.setValue = function(value){
-      if(value !== undefined &&
-         (this.min_date === undefined || value >= this.min_date) &&
-         (this.max_date === undefined || value <= this.max_date)){
+     * @override
+     **/
+    PickerControls.prototype.setValue = function(value) {
+      if (value !== undefined &&
+        (this.min_date === undefined || value >= this.min_date) &&
+        (this.max_date === undefined || value <= this.max_date)) {
         this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       }
-      switch(this.scale){
+      switch (this.scale) {
         case PickerControls.prototype.enum.scales.day:
         case PickerControls.prototype.enum.scales.month:
         case PickerControls.prototype.enum.scales.year:
@@ -1859,13 +1890,13 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.setUIValue = function(){
+     * @override
+     **/
+    PickerControls.prototype.setUIValue = function() {
       var uivalue = "";
-      switch(this.scale){
+      switch (this.scale) {
         case PickerControls.prototype.enum.scales.day:
-          switch(this.lang){
+          switch (this.lang) {
             case PickerControls.prototype.enum.languages.en:
               uivalue = DateUtils.formatDate(this.period, '%a, %M %e %Y', this.lang);
               break;
@@ -1878,7 +1909,7 @@
           }
           break;
         case PickerControls.prototype.enum.scales.week:
-          switch(this.lang){
+          switch (this.lang) {
             case PickerControls.prototype.enum.languages.en:
               uivalue = DateUtils.formatDate(this.period.start, '%b %e');
               uivalue += " - ";
@@ -1895,7 +1926,7 @@
           }
           break;
         case PickerControls.prototype.enum.scales.month:
-          switch(this.lang){
+          switch (this.lang) {
             case PickerControls.prototype.enum.languages.en:
             case PickerControls.prototype.enum.languages.fr:
               uivalue = DateUtils.formatDate(this.period, '%M %Y');
@@ -1915,12 +1946,12 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.generateHTML = function(){
+     * @override
+     **/
+    PickerControls.prototype.generateHTML = function() {
       var self = this;
       var inner =
-        '<svg class="date-picker-global-increment prev"><use xlink:href="#arrow-prev-big"></svg>'+
+        '<svg class="date-picker-global-increment prev"><use xlink:href="#arrow-prev-big"></svg>' +
         '<div class="date-picker-date-label"></div>' +
         '<svg class="date-picker-global-increment next"><use xlink:href="#arrow-next-big"></svg>';
       this.input = document.createElement('div');
@@ -1928,39 +1959,39 @@
       this.input.innerHTML = inner;
       this.setValue();
       this.prev = this.input.children[0];
-      this.input.children[1].addEventListener('click', function(){
-        if(self.input.className.indexOf('open') !== -1){
+      this.input.children[1].addEventListener('click', function() {
+        if (self.input.className.indexOf('open') !== -1) {
           self.input.className = "date-picker-input";
-        }else{
+        } else {
           self.input.className = "date-picker-input open";
         }
       });
-      this.prev.addEventListener('click', function(){
+      this.prev.addEventListener('click', function() {
         self.onPrevClick();
       });
       this.next = this.input.children[2];
-      this.next.addEventListener('click', function(){
+      this.next.addEventListener('click', function() {
         self.onNextClick();
       });
       this.updateUIControls();
     };
   
-    PickerControls.prototype.updateUIControls = function(){
+    PickerControls.prototype.updateUIControls = function() {
       //Hiding previous button if at the min value
-      if(this.testMin()){
+      if (this.testMin()) {
         this.prev.setAttribute("class", "date-picker-global-increment prev disabled");
         this.prev.isDisabled = true;
         //Hiding next button if at the max value
-      }else if(this.testMax()){
+      } else if (this.testMax()) {
         this.next.setAttribute("class", "date-picker-global-increment next disabled");
         this.next.isDisabled = true;
-      //Else making sure button is visible
-      }else{
-        if(this.min_value !== undefined){
+        //Else making sure button is visible
+      } else {
+        if (this.min_value !== undefined) {
           this.prev.setAttribute("class", "date-picker-global-increment prev");
           this.prev.isDisabled = false;
         }
-        if(this.max_value !== undefined){
+        if (this.max_value !== undefined) {
           this.next.setAttribute("class", "date-picker-global-increment next");
           this.next.isDisabled = false;
         }
@@ -1970,15 +2001,15 @@
   
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.testMin = function () {
-      switch(this.scale){
+     * @override
+     **/
+    PickerControls.prototype.testMin = function() {
+      switch (this.scale) {
         case PickerControls.prototype.enum.day:
           return this.min_date !== undefined && this.min_date === this.date;
         case PickerControls.prototype.enum.week:
           return this.min_date !== undefined &&
-                 DateUtils.getWeekFALDays(this.min_date).end >= DateUtils.getWeekFALDays(this.date).start;
+            DateUtils.getWeekFALDays(this.min_date).end >= DateUtils.getWeekFALDays(this.date).start;
         case PickerControls.prototype.enum.month:
           return this.min_date !== undefined &&
             this.min_date.getUTCFullYear() === this.date.getUTCFullYear() && this.min_date.getUTCMonth() === this.date.getUTCMonth();
@@ -1988,15 +2019,15 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.testMax = function () {
-      switch(this.scale){
+     * @override
+     **/
+    PickerControls.prototype.testMax = function() {
+      switch (this.scale) {
         case PickerControls.prototype.enum.day:
           return this.min_date !== undefined && this.min_date === this.date;
         case PickerControls.prototype.enum.week:
           return this.max_date !== undefined &&
-                 DateUtils.getWeekFALDays(this.max_date).start <= DateUtils.getWeekFALDays(this.date).end;
+            DateUtils.getWeekFALDays(this.max_date).start <= DateUtils.getWeekFALDays(this.date).end;
         case PickerControls.prototype.enum.month:
           return this.max_date !== undefined &&
             this.max_date.getUTCFullYear() === this.date.getUTCFullYear() && this.max_date.getUTCMonth() === this.date.getUTCMonth();
@@ -2006,52 +2037,56 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.onPrevClick = function () {
-      if(this.prev.isDisabled === true){
+     * @override
+     **/
+    PickerControls.prototype.onPrevClick = function(commit) {
+      if (this.prev.isDisabled === true) {
         return;
       }
-      switch(this.scale){
+      var e = {};
+      e.commit = commit === undefined || commit === true;
+      switch (this.scale) {
         case PickerControls.prototype.enum.scales.day:
-          this.emit(this.mediation.events.emit.decday, {});
+          this.emit(this.mediation.events.emit.decday, e);
           break;
         case PickerControls.prototype.enum.scales.week:
-          this.emit(this.mediation.events.emit.decweek, {});
+          this.emit(this.mediation.events.emit.decweek, e);
           break;
         case PickerControls.prototype.enum.scales.month:
-          this.emit(this.mediation.events.emit.decmonth, {});
+          this.emit(this.mediation.events.emit.decmonth, e);
           break;
         case PickerControls.prototype.enum.scales.year:
-          this.emit(this.mediation.events.emit.decyear, {});
+          this.emit(this.mediation.events.emit.decyear, e);
           break;
       }
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.onNextClick = function () {
-      if(this.next.isDisabled === true){
+     * @override
+     **/
+    PickerControls.prototype.onNextClick = function(commit) {
+      if (this.next.isDisabled === true) {
         return;
       }
-      switch(this.scale){
+      var e = {};
+      e.commit = commit === undefined || commit === true;
+      switch (this.scale) {
         case PickerControls.prototype.enum.scales.day:
-          this.emit(this.mediation.events.emit.incday, {});
+          this.emit(this.mediation.events.emit.incday, e);
           break;
         case PickerControls.prototype.enum.scales.week:
-          this.emit(this.mediation.events.emit.incweek, {});
+          this.emit(this.mediation.events.emit.incweek, e);
           break;
         case PickerControls.prototype.enum.scales.month:
-          this.emit(this.mediation.events.emit.incmonth, {});
+          this.emit(this.mediation.events.emit.incmonth, e);
           break;
         case PickerControls.prototype.enum.scales.year:
-          this.emit(this.mediation.events.emit.incyear, {});
+          this.emit(this.mediation.events.emit.incyear, e);
           break;
       }
     };
   
-    PickerControls.prototype.generateEvents = function () {
+    PickerControls.prototype.generateEvents = function() {
       this.mediation.events.emit.pcupdate = this._constructEventString(Events.scope.emit, Events.desc.update.pcs);
       this.mediation.events.emit.decday = this._constructEventString(Events.scope.emit, Events.desc.request.decrement.day);
       this.mediation.events.emit.decweek = this._constructEventString(Events.scope.emit, Events.desc.request.decrement.week);
@@ -2063,8 +2098,8 @@
       this.mediation.events.emit.incyear = this._constructEventString(Events.scope.emit, Events.desc.request.increment.year);
     };
   
-    PickerControls.prototype.subscribe = function (parent) {
-      if(parent !== undefined){
+    PickerControls.prototype.subscribe = function(parent) {
+      if (parent !== undefined) {
         this.mediator.subscribe(this.mediation.events.emit.pcupdate, parent);
         this.mediator.subscribe(this.mediation.events.emit.decday, parent);
         this.mediator.subscribe(this.mediation.events.emit.decweek, parent);
@@ -2078,26 +2113,26 @@
     };
   
     /**
-    * @override
-    **/
-    PickerControls.prototype.notify = function (e) {
-      if(e.scope === Events.scope.broadcast){
-        switch(e.desc){
+     * @override
+     **/
+    PickerControls.prototype.notify = function(e) {
+      if (e.scope === Events.scope.broadcast) {
+        switch (e.desc) {
           case Events.desc.update.controls:
           case Events.desc.update.global:
-            if(e.data.min_date !== undefined && e.data.min_date instanceof Date &&
-              (this.max_date === undefined || e.data.min_date < this.max_date)){
+            if (e.data.min_date !== undefined && e.data.min_date instanceof Date &&
+              (this.max_date === undefined || e.data.min_date < this.max_date)) {
               this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
             }
-            if(e.data.max_date !== undefined && e.data.max_date instanceof Date &&
-              (this.min_date === undefined || e.data.max_date > this.min_date)){
+            if (e.data.max_date !== undefined && e.data.max_date instanceof Date &&
+              (this.min_date === undefined || e.data.max_date > this.min_date)) {
               this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
             }
-            if(e.data.scale !== undefined && PickerControls.prototype.enum.scales[e.data.scale] !== undefined){
+            if (e.data.scale !== undefined && PickerControls.prototype.enum.scales[e.data.scale] !== undefined) {
               this.scale = PickerControls.prototype.enum.scales[e.data.scale];
               this.setValue();
             }
-            if(e.data.date !== undefined && e.data.date instanceof Date){
+            if (e.data.date !== undefined && e.data.date instanceof Date) {
               this.setValue(e.data.date);
             }
             this.updateUIControls();
@@ -2111,16 +2146,15 @@
   
     return PickerControls;
   })();
+  var Partial = (function() {
   
-  var Partial = (function(){
-  
-    function Partial(options, parent){
+    function Partial(options, parent) {
       //super()
       Colleague.call(this, options.mediator, Partial.prototype.component);
       //Scale for this instance
       this.scale = (options.scale && Partial.prototype.enum.scales[options.scale]) ?
-                   Partial.prototype.enum.scales[options.scale] :
-                   Partial.prototype.enum.scales.day;
+        Partial.prototype.enum.scales[options.scale] :
+        Partial.prototype.enum.scales.day;
       this.generateEvents();
       //Date that is modified by the user
       this.date = new Date(options.date.getUTCFullYear(), options.date.getUTCMonth(), options.date.getUTCDate());
@@ -2147,29 +2181,29 @@
   
     Partial.prototype.enum = {
       scales: {
-        day : "day",
-        week : "week",
-        month : "month",
-        year : "year"
+        day: "day",
+        week: "week",
+        month: "month",
+        year: "year"
       }
     };
   
-    Partial.prototype.getHTML = function(){
+    Partial.prototype.getHTML = function() {
       return this.html;
     };
   
-    Partial.prototype.rollback = function () {
+    Partial.prototype.rollback = function() {
       this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
       var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.pupdate, {date: date});
+      this.emit(this.mediation.events.broadcast.pupdate, { date: date });
     };
   
-    Partial.prototype.commit = function () {
+    Partial.prototype.commit = function() {
       this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     };
   
-    Partial.prototype.generateHTML = function(options){
-      switch(this.scale){
+    Partial.prototype.generateHTML = function(options) {
+      switch (this.scale) {
         case Partial.prototype.enum.scales.day:
         case Partial.prototype.enum.scales.week:
           this.html = this.calendarPartialHTML(options);
@@ -2183,19 +2217,19 @@
       }
     };
   
-    Partial.prototype.calendarPartialHTML = function (options) {
+    Partial.prototype.calendarPartialHTML = function(options) {
       var container = document.createElement('div'),
-          wrapper = document.createElement('div');
+        wrapper = document.createElement('div');
       options.min_value = options.min_date;
       options.max_value = options.max_date;
       this.components.yinput = new YearIncrementSlider(options);
       this.components.minput = new MonthIncrementSlider(options);
       this.components.calendar = new Calendar(options);
   
-      if(this.scale === Partial.prototype.enum.scales.day){
+      if (this.scale === Partial.prototype.enum.scales.day) {
         container.className = "date-picker-mode-day active";
         wrapper.className = "date-picker-content-wrapper";
-      }else if(this.scale === Partial.prototype.enum.scales.week){
+      } else if (this.scale === Partial.prototype.enum.scales.week) {
         container.className = "date-picker-mode-week active";
         wrapper.className = "date-picker-content-wrapper";
       }
@@ -2207,20 +2241,20 @@
       return container;
     };
   
-    Partial.prototype.dialerPartialHTML = function (options) {
+    Partial.prototype.dialerPartialHTML = function(options) {
       var container = document.createElement('div'),
-          wrapper = document.createElement('div');
+        wrapper = document.createElement('div');
       options.min_value = options.min_date;
       options.max_value = options.max_date;
   
-      if(this.scale === Partial.prototype.enum.scales.month){
+      if (this.scale === Partial.prototype.enum.scales.month) {
         this.components.yinput = new YearIncrementSlider(options);
         this.components.mdialer = new Dialer(options);
         container.className = "date-picker-mode-month active";
         wrapper.className = "date-picker-content-wrapper";
         wrapper.appendChild(this.components.yinput.getHTML());
         wrapper.appendChild(this.components.mdialer.getHTML());
-      }else if(this.scale === Partial.prototype.enum.scales.year){
+      } else if (this.scale === Partial.prototype.enum.scales.year) {
         options.value = "Financial Year";
         this.components.ydinput = new YDialerIncrementSlider(options);
         this.components.ydialer = new Dialer(options);
@@ -2234,8 +2268,8 @@
       return container;
     };
   
-    Partial.prototype.generateEvents = function () {
-      switch(this.scale){
+    Partial.prototype.generateEvents = function() {
+      switch (this.scale) {
         case Partial.prototype.enum.scales.day:
           //Targetted at the Calendar {scale=day} class
           this.mediation.events.broadcast.decday = this._constructEventString(Events.scope.broadcast, Events.desc.request.decrement.day);
@@ -2271,15 +2305,17 @@
         default:
           break;
       }
+      this.mediation.events.emit.commit = this._constructEventString(Events.scope.emit, Events.desc.commit);
       this.mediation.events.broadcast.pupdate = this._constructEventString(Events.scope.broadcast, Events.desc.update.partial);
       this.mediation.events.emit.pupdate = this._constructEventString(Events.scope.emit, Events.desc.update[this.scale]);
     };
   
-    Partial.prototype.subscribe = function (parent) {
-      if(parent !== undefined){
+    Partial.prototype.subscribe = function(parent) {
+      if (parent !== undefined) {
+        this.mediator.subscribe(this.mediation.events.emit.commit, parent);
         this.mediator.subscribe(this.mediation.events.emit.pupdate, parent);
       }
-      switch(this.scale){
+      switch (this.scale) {
         case Partial.prototype.enum.scales.day:
           this.subscribeDay();
           break;
@@ -2297,7 +2333,7 @@
       }
     };
   
-    Partial.prototype.subscribeDay = function () {
+    Partial.prototype.subscribeDay = function() {
       this.mediator.subscribe(this.mediation.events.broadcast.decyear, this.components.yinput);
       this.mediator.subscribe(this.mediation.events.broadcast.incyear, this.components.yinput);
       this.mediator.subscribe(this.mediation.events.broadcast.decmonth, this.components.minput);
@@ -2315,7 +2351,7 @@
       this.components.calendar.subscribe(this);
     };
   
-    Partial.prototype.subscribeWeek = function () {
+    Partial.prototype.subscribeWeek = function() {
       this.mediator.subscribe(this.mediation.events.broadcast.decweek, this.components.calendar);
       this.mediator.subscribe(this.mediation.events.broadcast.incweek, this.components.calendar);
       this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.yinput);
@@ -2329,7 +2365,7 @@
       this.components.calendar.subscribe(this);
     };
   
-    Partial.prototype.subscribeMonth = function () {
+    Partial.prototype.subscribeMonth = function() {
       this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.yinput);
       this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.mdialer);
       this.mediator.subscribe(this.mediation.events.broadcast.yupdate, this.components.yinput);
@@ -2338,7 +2374,7 @@
       this.components.mdialer.subscribe(this);
     };
   
-    Partial.prototype.subscribeYear = function () {
+    Partial.prototype.subscribeYear = function() {
       this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.ydinput);
       this.mediator.subscribe(this.mediation.events.broadcast.pupdate, this.components.ydialer);
       this.mediator.subscribe(this.mediation.events.broadcast.ydupdate, this.components.ydinput);
@@ -2348,78 +2384,82 @@
     };
   
     /**
-    * @override
-    **/
-    Partial.prototype.notify = function (e) {
+     * @override
+     **/
+    Partial.prototype.notify = function(e) {
       this.forward(e);
-      if (e.scope === Events.scope.broadcast){
-        if(e.data.min_date !== undefined && e.data.date instanceof Date){
+      if (e.scope === Events.scope.broadcast) {
+        if (e.data.min_date !== undefined && e.data.date instanceof Date) {
           this.min_date = new Date(e.data.min_date.getUTCFullYear(), e.data.min_date.getUTCMonth(), e.data.min_date.getUTCDate());
         }
-        if(e.data.max_date !== undefined && e.data.date instanceof Date){
+        if (e.data.max_date !== undefined && e.data.date instanceof Date) {
           this.max_date = new Date(e.data.max_date.getUTCFullYear(), e.data.max_date.getUTCMonth(), e.data.max_date.getUTCDate());
         }
       }
   
-      if(e.data.date !== undefined && e.data.date instanceof Date){
+      if (e.data.date !== undefined && e.data.date instanceof Date) {
         this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
       }
   
       this.constructor.prototype.notify.call(this, e);
     };
   
-    Partial.prototype.forward = function (e) {
-      if(e.scope === Events.scope.emit){
-        switch(this.scale){
-          case Partial.prototype.enum.scales.day:
-          case Partial.prototype.enum.scales.week:
-            switch(e.desc){
-              case Events.desc.update.mis:
-                this.emit(this.mediation.events.broadcast.yupdate, e.data);
-                this.emit(this.mediation.events.broadcast.cupdate, e.data);
-                break;
-              case Events.desc.update.yis:
-                this.emit(this.mediation.events.broadcast.mupdate, e.data);
-                this.emit(this.mediation.events.broadcast.cupdate, e.data);
-                break;
-              case Events.desc.update.cal:
-                this.emit(this.mediation.events.broadcast.mupdate, e.data);
-                this.emit(this.mediation.events.broadcast.yupdate, e.data);
-                break;
-              default:
-                break;
-            }
-            break;
-          case Partial.prototype.enum.scales.month:
-            switch(e.desc){
-              case Events.desc.update.mdi:
-                this.emit(this.mediation.events.broadcast.yupdate, e.data);
-                break;
-              case Events.desc.update.yis:
-                this.emit(this.mediation.events.broadcast.dupdate, e.data);
-                break;
-              default:
-                break;
-            }
-            break;
-          case Partial.prototype.enum.scales.year:
-            switch(e.desc){
-              case Events.desc.update.ydi:
-                this.emit(this.mediation.events.broadcast.ydupdate, e.data);
-                break;
-              case Events.desc.update.yds:
-                this.emit(this.mediation.events.broadcast.dupdate, e.data);
-                break;
-              default:
-                break;
-            }
-            break;
-          default:
-            break;
+    Partial.prototype.forward = function(e) {
+      if (e.scope === Events.scope.emit) {
+        if (e.desc === Events.desc.commit) {
+          this.emit(this.mediation.events.emit.commit, e.data);
+        } else {
+          switch (this.scale) {
+            case Partial.prototype.enum.scales.day:
+            case Partial.prototype.enum.scales.week:
+              switch (e.desc) {
+                case Events.desc.update.mis:
+                  this.emit(this.mediation.events.broadcast.yupdate, e.data);
+                  this.emit(this.mediation.events.broadcast.cupdate, e.data);
+                  break;
+                case Events.desc.update.yis:
+                  this.emit(this.mediation.events.broadcast.mupdate, e.data);
+                  this.emit(this.mediation.events.broadcast.cupdate, e.data);
+                  break;
+                case Events.desc.update.cal:
+                  this.emit(this.mediation.events.broadcast.mupdate, e.data);
+                  this.emit(this.mediation.events.broadcast.yupdate, e.data);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case Partial.prototype.enum.scales.month:
+              switch (e.desc) {
+                case Events.desc.update.mdi:
+                  this.emit(this.mediation.events.broadcast.yupdate, e.data);
+                  break;
+                case Events.desc.update.yis:
+                  this.emit(this.mediation.events.broadcast.dupdate, e.data);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            case Partial.prototype.enum.scales.year:
+              switch (e.desc) {
+                case Events.desc.update.ydi:
+                  this.emit(this.mediation.events.broadcast.ydupdate, e.data);
+                  break;
+                case Events.desc.update.yds:
+                  this.emit(this.mediation.events.broadcast.dupdate, e.data);
+                  break;
+                default:
+                  break;
+              }
+              break;
+            default:
+              break;
+          }
+          this.emit(this.mediation.events.emit.pupdate, e.data);
         }
-        this.emit(this.mediation.events.emit.pupdate, e.data);
-      }else if(e.scope === Events.scope.broadcast){
-        switch(e.desc){
+      } else if (e.scope === Events.scope.broadcast) {
+        switch (e.desc) {
           case Events.desc.commit:
             this.commit();
             break;
@@ -2459,42 +2499,41 @@
   
     return Partial;
   })();
-  
 
-  function DatePicker(options){
+  function DatePicker(options) {
     //super()
     Colleague.call(this, new Mediator(), DatePicker.prototype.component);
     this.generateEvents();
 
-    if(options === undefined){
+    if (options === undefined) {
       options = this.deepCopyObject(DatePicker.prototype.defaults);
-    }else{
+    } else {
       options = Object.assign(this.deepCopyObject(DatePicker.prototype.defaults), this.deepCopyObject(options));
     }
     options.mediator = this.mediator;
     this.context = options.parent;
 
-    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined)?
-                  options.scale : DatePicker.prototype.defaults.scale;
+    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined) ?
+      options.scale : DatePicker.prototype.defaults.scale;
 
     this.min_date = options.min_date instanceof Date ?
-                    options.min_date :
-                    undefined;
-    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
-                    options.max_date :
-                    undefined;
+      options.min_date :
+      undefined;
+    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date ?
+      options.max_date :
+      undefined;
 
     this.date = options.date instanceof Date && options.date >= this.min_date && options.date <= this.max_date ?
-                options.date : undefined;
+      options.date : undefined;
 
-    if(this.date === undefined){
-      if(this.max_date){
+    if (this.date === undefined) {
+      if (this.max_date) {
         this.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
         options.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
-      }else if(this.min_date){
+      } else if (this.min_date) {
         this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
         options.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
-      }else{
+      } else {
         this.date = new Date();
         options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
       }
@@ -2502,8 +2541,8 @@
     this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
 
     this.lang = options.lang !== undefined &&
-                DatePicker.prototype.enum.languages[options.lang] !== undefined ?
-                DatePicker.prototype.enum.languages[options.lang] : 'en';
+      DatePicker.prototype.enum.languages[options.lang] !== undefined ?
+      DatePicker.prototype.enum.languages[options.lang] : 'en';
 
     //Setting up the controls
     this.controls = new PickerControls(options);
@@ -2565,10 +2604,10 @@
 
   DatePicker.prototype.enum = {
     scales: {
-      day : "day",
-      week : "week",
-      month : "month",
-      year : "year"
+      day: "day",
+      week: "week",
+      month: "month",
+      year: "year"
     },
     languages: {
       en: 'en',
@@ -2592,7 +2631,7 @@
         year: "YEARPARTIAL"
       },
       sub: {
-        day:{
+        day: {
           mis: "DAYMIS",
           yis: "DAYYIS",
           cal: "DAYCAL",
@@ -2617,89 +2656,105 @@
     }
   };
 
-  DatePicker.prototype.getAPI = function () {
+  DatePicker.prototype.getAPI = function() {
     var self = this;
     return {
-      getDate: function(){
+      getDate: function() {
         return self.getDate();
       },
-      setDate: function(date){
+      setDate: function(date) {
         self.setDate(date);
       },
-      getMinDate: function(){
+      incrementDate: function(commit) {
+        return self.incrementDate(commit);
+      },
+      decrementDate: function(commit) {
+        return self.decrementDate(commit);
+      },
+      getMinDate: function() {
         return self.getMinDate();
       },
-      setMinDate: function(date){
+      setMinDate: function(date) {
         self.setMinDate(date);
       },
-      getMaxDate: function(){
+      getMaxDate: function() {
         return self.getMaxDate();
       },
-      setMaxDate: function(date){
+      setMaxDate: function(date) {
         self.setMaxDate(date);
       },
-      getPeriod: function(){
+      getPeriod: function() {
         return self.getPeriod();
       },
-      getScales: function(){
+      getScales: function() {
         return self.getScales();
       },
-      getScale: function(){
+      getScale: function() {
         return self.getScale();
       },
-      changeScale: function(scale){
+      changeScale: function(scale) {
         self.changeScale(scale);
       },
-      addEventListener: function(e, c){
-        self.addEventListener(e,c);
+      addEventListener: function(e, c) {
+        self.addEventListener(e, c);
       },
-      getHTML: function(){
+      getHTML: function() {
         return self.getHTML();
       },
-      getComponents: function(){
+      getComponents: function() {
         return self.getComponents();
       },
-      getComponent: function(comp){
+      getComponent: function(comp) {
         return self.getComponent(comp);
       },
-      commit: function(){
+      commit: function() {
         self.commit();
       },
-      rollback: function(){
+      rollback: function() {
         self.rollback();
       },
-      patchSVGURLs: function(){
+      patchSVGURLs: function() {
         self.patchSVGURLs();
       }
     };
   };
 
-  DatePicker.prototype.getDate = function () {
+  DatePicker.prototype.getDate = function() {
     return new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
   };
 
-  DatePicker.prototype.setDate = function (date) {
-    if(date !== undefined && date instanceof Date &&
-       (this.min_date === undefined || date >= this.min_date) &&
-       (this.max_date === undefined || date <= this.max_date)){
+  DatePicker.prototype.setDate = function(date) {
+    if (date !== undefined && date instanceof Date &&
+      (this.min_date === undefined || date >= this.min_date) &&
+      (this.max_date === undefined || date <= this.max_date)) {
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, { date: date });
       this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, date);
       return true;
     }
     return false;
   };
 
-  DatePicker.prototype.getMinDate = function () {
-    if(this.min_date === undefined) return undefined;
+  DatePicker.prototype.incrementDate = function(commit) {
+    commit = commit === undefined ? false : !!commit;
+    this.controls.onNextClick(commit);
+  };
+
+  DatePicker.prototype.decrementDate = function(commit) {
+    commit = commit === undefined ? false : !!commit;
+    this.controls.onPrevClick(commit);
+  };
+
+  DatePicker.prototype.getMinDate = function() {
+    if (this.min_date === undefined) return undefined;
     return new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
   };
 
-  DatePicker.prototype.setMinDate = function (date) {
-    if(date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)){
+  DatePicker.prototype.setMinDate = function(date) {
+    if (date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)) {
       this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {min_date: date});
-      if(this.date < this.min_date){
+      this.emit(this.mediation.events.broadcast.gupdate, { min_date: date });
+      if (this.date < this.min_date) {
         this.setDate(this.min_date);
       }
       this.callCallback(DatePicker.prototype.enum.callbacks.minDateUpdate, date);
@@ -2708,16 +2763,16 @@
     return false;
   };
 
-  DatePicker.prototype.getMaxDate = function () {
-    if(this.max_date === undefined) return undefined;
+  DatePicker.prototype.getMaxDate = function() {
+    if (this.max_date === undefined) return undefined;
     return new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
   };
 
-  DatePicker.prototype.setMaxDate = function (date) {
-    if(date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)){
+  DatePicker.prototype.setMaxDate = function(date) {
+    if (date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)) {
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {max_date: date});
-      if(this.date > this.max_date){
+      this.emit(this.mediation.events.broadcast.gupdate, { max_date: date });
+      if (this.date > this.max_date) {
         this.setDate(this.max_date);
       }
       this.callCallback(DatePicker.prototype.enum.callbacks.maxDateUpdate, date);
@@ -2726,24 +2781,24 @@
     return false;
   };
 
-  DatePicker.prototype.getPeriod = function () {
+  DatePicker.prototype.getPeriod = function() {
     var period = {};
-    switch(this.scale){
+    switch (this.scale) {
       case DatePicker.prototype.enum.scales.day:
         period.date = this.getDate();
         break;
       case DatePicker.prototype.enum.scales.week:
         period = DateUtils.getWeekFALDays(this.date);
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
       case DatePicker.prototype.enum.scales.month:
         period.start = this.getDate();
         period.start.setUTCDate(1);
         period.end = this.getDate();
         period.end.setUTCDate(DateUtils.daysInMonth(period.end.getUTCFullYear(), period.end.getUTCMonth()));
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
       case DatePicker.prototype.enum.scales.year:
         period.start = this.getDate();
@@ -2752,39 +2807,39 @@
         period.end = this.getDate();
         period.end.setUTCMonth(11);
         period.end.setUTCDate(31);
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
     }
     return period;
   };
 
-  DatePicker.prototype.getScales = function () {
+  DatePicker.prototype.getScales = function() {
     return DatePicker.prototype.enum.scales;
   };
 
-  DatePicker.prototype.getScale = function () {
+  DatePicker.prototype.getScale = function() {
     return this.scale;
   };
 
-  DatePicker.prototype.changeScale = function(scale){
+  DatePicker.prototype.changeScale = function(scale) {
     this.scale = DatePicker.prototype.enum.scales[scale] === undefined ?
-                 DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
+      DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
     this.body.removeChild(this.body.children[0]);
     this.body.appendChild(this.partials[this.scale].getHTML());
     this.callCallback(DatePicker.prototype.enum.callbacks.scaleUpdate, scale);
   };
 
-  DatePicker.prototype.getHTML = function () {
+  DatePicker.prototype.getHTML = function() {
     return this.html;
   };
 
-  DatePicker.prototype.getComponents = function () {
+  DatePicker.prototype.getComponents = function() {
     return DatePicker.prototype.enum.components;
   };
 
-  DatePicker.prototype.getComponent = function(comp){
-    switch(comp){
+  DatePicker.prototype.getComponent = function(comp) {
+    switch (comp) {
       case DatePicker.prototype.enum.components.partials.day:
         return this.partials[DatePicker.prototype.enum.scales.day];
       case DatePicker.prototype.enum.components.partials.week:
@@ -2820,38 +2875,38 @@
     }
   };
 
-  DatePicker.prototype.addEventListener = function(e, callback){
-    if(typeof e === "string"){
-      for(var key in DatePicker.prototype.enum.callbacks){
-        if(e === key){
+  DatePicker.prototype.addEventListener = function(e, callback) {
+    if (typeof e === "string") {
+      for (var key in DatePicker.prototype.enum.callbacks) {
+        if (e === key) {
           this.registerCallback(e, callback);
           break;
         }
       }
-    }else{
+    } else {
       throw new Error('Illegal Argument: addEventListener takes a string as first parameter');
     }
   };
 
-  DatePicker.prototype.commit = function () {
+  DatePicker.prototype.commit = function() {
     var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     this.emit(this.mediation.events.broadcast.commit, {});
     this.callCallback(DatePicker.prototype.enum.callbacks.commit, date);
   };
 
-  DatePicker.prototype.rollback = function () {
+  DatePicker.prototype.rollback = function() {
     var date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
     this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
     this.emit(this.mediation.events.broadcast.rollback, {});
     this.callCallback(DatePicker.prototype.enum.callbacks.rollback, date);
   };
 
-  DatePicker.prototype.generateHTML = function () {
+  DatePicker.prototype.generateHTML = function() {
     var self = this,
-        callback = function(e){
-          self.onModeBtnClick(e.target);
-        };
+      callback = function(e) {
+        self.onModeBtnClick(e.target);
+      };
     var datepicker = document.createElement('div');
     datepicker.className = "date-picker";
 
@@ -2862,15 +2917,15 @@
     moderow.className = "date-picker-mode-button-row";
 
     var button;
-    for(var key in DatePicker.prototype.enum.scales){
+    for (var key in DatePicker.prototype.enum.scales) {
       button = document.createElement('span');
       button.scale = key;
       button.innerHTML = key.charAt(0).toUpperCase() + key.slice(1);
       button.addEventListener('click', callback);
-      if(this.scale === key){
+      if (this.scale === key) {
         moderow.current = button;
         button.className = "date-picker-mode-button active";
-      }else{
+      } else {
         button.className = "date-picker-mode-button";
       }
       moderow.appendChild(button);
@@ -2883,17 +2938,17 @@
     content.appendChild(moderow);
     content.appendChild(body);
 
-    document.addEventListener('click', function(e){
+    document.addEventListener('click', function(e) {
       var isChild = false,
-          node = e.target;
+        node = e.target;
       while (node !== null) {
         if (node == datepicker) {
-           isChild = true;
+          isChild = true;
         }
         node = node.parentNode;
       }
       var html = self.controls.getHTML();
-      if(!isChild && html.className !== "date-picker-input"){
+      if (!isChild && html.className !== "date-picker-input") {
         html.className = "date-picker-input";
         self.commit();
       }
@@ -2907,36 +2962,36 @@
 
     //Appending HTML to options.parent
     var parent;
-    if(typeof this.context === "string"){
+    if (typeof this.context === "string") {
       parent = document.querySelector(this.context);
       parent.appendChild(this.html);
-    }else if(this.context.nodeType !== undefined){
+    } else if (this.context.nodeType !== undefined) {
       parent = this.context;
       parent.appendChild(this.html);
     }
   };
 
-  DatePicker.prototype.onModeBtnClick = function (span) {
+  DatePicker.prototype.onModeBtnClick = function(span) {
     var buttons = this.html.children[1].children[0];
     buttons.current.className = "date-picker-mode-button";
     buttons.current = span;
     this.changeScale(span.scale);
-    this.emit(this.mediation.events.broadcast.pcupdate, {scale: span.scale});
+    this.emit(this.mediation.events.broadcast.pcupdate, { scale: span.scale });
     buttons.current.className = "date-picker-mode-button active";
   };
 
   /**
-  * Initializes the SVG icons for the DatePicker
-  * @param options <Object> List of options for the DatePicker
-  **/
-  DatePicker.prototype.generateSVG = function(icons){
+   * Initializes the SVG icons for the DatePicker
+   * @param options <Object> List of options for the DatePicker
+   **/
+  DatePicker.prototype.generateSVG = function(icons) {
     //If icons are already set, return
-    if(document.querySelector("svg#dp-icons")){
+    if (document.querySelector("svg#dp-icons")) {
       return document.querySelector("svg#dp-icons");
     }
-    var svg = document.createElementNS('http://www.w3.org/2000/svg','svg'),
-        idsmall = ['arrow-prev-small', 'arrow-next-small'],
-        idbig = ['arrow-prev-big', 'arrow-next-big'];
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+      idsmall = ['arrow-prev-small', 'arrow-next-small'],
+      idbig = ['arrow-prev-big', 'arrow-next-big'];
     svg.id = "dp-icons";
     svg.style.display = "none";
     this.svg = svg;
@@ -2947,44 +3002,45 @@
     return svg;
   };
 
-  DatePicker.prototype._initIcons = function (ids, icons) {
+  DatePicker.prototype._initIcons = function(ids, icons) {
     var valid = false;
     var id;
-    var elements = [], element;
-    if(icons !== undefined){
+    var elements = [],
+      element;
+    if (icons !== undefined) {
       valid = true;
-      for(var i = 0 ; i < ids.length ; i++){
+      for (var i = 0; i < ids.length; i++) {
         id = ids[i];
         //Verifies if the icons passed are HTMLElements
         try {
-          if(typeof icons[id] === "string"){
+          if (typeof icons[id] === "string") {
             element = document.createElement('div');
             element.innerHTML = icons[id];
             element = element.firstChild;
             element.id = id;
             elements.push(element);
-          }else if(icons[id].nodeType !== undefined){
+          } else if (icons[id].nodeType !== undefined) {
             elements.push(icons[id]);
-          }else{
+          } else {
             throw new Error("Illegal argument: Icons passed in option.icons are not HTML string nor HTMLElements. Falling back to base icons for the group of icons " + ids.toString() + ".");
           }
-        }catch(e){
+        } catch (e) {
           valid = false;
           console.error(e);
         }
       }
     }
 
-    if(!valid){
-      for(var j = 0 ; j < ids.length; j++){
+    if (!valid) {
+      for (var j = 0; j < ids.length; j++) {
         id = ids[j];
         element = document.createElement('svg');
         element.innerHTML = DatePicker.prototype.defaults.icons[id];
         element = element.firstChild.firstChild;
         this.svg.appendChild(element);
       }
-    }else{
-      for(var k = 0 ; k < elements.length ; k++){
+    } else {
+      for (var k = 0; k < elements.length; k++) {
         this.svg.appendChild(elements[k]);
       }
     }
@@ -2993,21 +3049,21 @@
   //Fixes references to inline SVG elements when the <base> tag is in use.
   //Related to http://stackoverflow.com/a/18265336/796152
   //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
-  DatePicker.prototype.patchSVGURLs = function () {
-    if(document.querySelector("base")){
-  		var baseUrl = window.location.href
-  			.replace(window.location.hash, "");
-  		[].slice.call(document.querySelectorAll("use[*|href]"))
-  			.filter(function(element) {
-  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
-  			})
-  			.forEach(function(element) {
-  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
-  			});
+  DatePicker.prototype.patchSVGURLs = function() {
+    if (document.querySelector("base")) {
+      var baseUrl = window.location.href
+        .replace(window.location.hash, "");
+      [].slice.call(document.querySelectorAll("use[*|href]"))
+        .filter(function(element) {
+          return (element.getAttribute("xlink:href").indexOf("#") === 0);
+        })
+        .forEach(function(element) {
+          element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
+        });
     }
   };
 
-  DatePicker.prototype.generateEvents = function () {
+  DatePicker.prototype.generateEvents = function() {
     //Commit & rollback
     this.mediation.events.broadcast.commit = this._constructEventString(Events.scope.broadcast, Events.desc.commit);
     this.mediation.events.broadcast.rollback = this._constructEventString(Events.scope.broadcast, Events.desc.rollback);
@@ -3028,7 +3084,7 @@
     this.mediation.events.broadcast.incyear = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.year);
   };
 
-  DatePicker.prototype.subscribe = function () {
+  DatePicker.prototype.subscribe = function() {
     //Commit & rollback
     this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.week);
@@ -3067,11 +3123,11 @@
   };
 
   /**
-  * @override
-  **/
-  DatePicker.prototype.notify = function (e) {
-    if(e.scope === Events.scope.emit){
-      switch(e.desc){
+   * @override
+   **/
+  DatePicker.prototype.notify = function(e) {
+    if (e.scope === Events.scope.emit) {
+      switch (e.desc) {
         //Updates
         case Events.desc.update.day:
           this.emit(this.mediation.events.broadcast.wupdate, e.data);
@@ -3097,7 +3153,7 @@
           this.emit(this.mediation.events.broadcast.mupdate, e.data);
           this.emit(this.mediation.events.broadcast.pcupdate, e.data);
           break;
-        //Requests
+          //Requests
         case Events.desc.request.decrement.day:
           this.emit(this.mediation.events.broadcast.decday, e.data);
           break;
@@ -3122,10 +3178,13 @@
         case Events.desc.request.increment.year:
           this.emit(this.mediation.events.broadcast.incyear, e.data);
           break;
+        case Events.desc.commit:
+          this.commit();
+          break;
         default:
           break;
       }
-      if(e.data.date instanceof Date){
+      if (e.data.date instanceof Date) {
         this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
         this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, e.data.date);
       }
@@ -3133,21 +3192,21 @@
     Colleague.prototype.notify.call(this, e);
   };
 
-  DatePicker.prototype.deepCopyObject = function(options){
-      return deepCopyObject(options, {});
+  DatePicker.prototype.deepCopyObject = function(options) {
+    return deepCopyObject(options, {});
   };
 
-  var deepCopyObject = function(object, copy){
-    for(var key in object){
-      if(typeof object[key] === "string" || typeof object[key] === "number" || typeof object[key] === "function"){
+  var deepCopyObject = function(object, copy) {
+    for (var key in object) {
+      if (typeof object[key] === "string" || typeof object[key] === "number" || typeof object[key] === "function") {
         copy[key] = object[key];
-      }else if(typeof object[key] === "object" && object[key] !== null){
-        if(object[key] instanceof Date){
-          object[key].setHours(0,0,0,0);
+      } else if (typeof object[key] === "object" && object[key] !== null) {
+        if (object[key] instanceof Date) {
+          object[key].setHours(0, 0, 0, 0);
           copy[key] = new Date(object[key].getUTCFullYear(), object[key].getUTCMonth(), object[key].getUTCDate());
-        }else if (object[key].nodeType !== undefined){
+        } else if (object[key].nodeType !== undefined) {
           copy[key] = object[key];
-        }else{
+        } else {
           copy[key] = deepCopyObject(object[key], {});
         }
       }
