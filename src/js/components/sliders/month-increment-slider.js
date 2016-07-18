@@ -1,12 +1,13 @@
-var MonthIncrementSlider = (function(){
-  function MonthIncrementSlider(options, component){
+var MonthIncrementSlider = (function() {
+  function MonthIncrementSlider(options, component) {
     //super()
-    component = component === undefined? MonthIncrementSlider.prototype.component : component;
+    component = component === undefined ? MonthIncrementSlider.prototype.component : component;
     IncrementSlider.call(this, options, component);
+    this.mediation.events.emit.commit = this._constructEventString(Events.scope.emit, Events.desc.commit);
     this.mediation.events.emit.mupdate = this._constructEventString(Events.scope.emit, Events.desc.update.mis);
     this.lang = options.lang !== undefined &&
-                MonthIncrementSlider.prototype.enum.languages[options.lang] !== undefined ?
-                MonthIncrementSlider.prototype.enum.languages[options.lang] : 'en';
+      MonthIncrementSlider.prototype.enum.languages[options.lang] !== undefined ?
+      MonthIncrementSlider.prototype.enum.languages[options.lang] : 'en';
     this.date = this.value;
     this.min_date = this.min_value;
     this.max_date = this.max_value;
@@ -33,27 +34,27 @@ var MonthIncrementSlider = (function(){
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.setValue = function(value){
+   * @override
+   **/
+  MonthIncrementSlider.prototype.setValue = function(value) {
     this.date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
     this.value = this.date;
     this.setUIValue();
     this.callCallback(IncrementSlider.prototype.enum.callbacks.valuechange);
   };
 
-  MonthIncrementSlider.prototype.setMinValue = function(value){
-    if(value instanceof Date &&
-      (this.max_date === undefined || value < this.max_date)){
+  MonthIncrementSlider.prototype.setMinValue = function(value) {
+    if (value instanceof Date &&
+      (this.max_date === undefined || value < this.max_date)) {
       this.min_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.min_value = this.min_date;
       this.callCallback(IncrementSlider.prototype.enum.callbacks.minchange);
     }
   };
 
-  MonthIncrementSlider.prototype.setMaxValue = function(value){
-    if(value instanceof Date &&
-      (this.min_date === undefined || value > this.min_date)){
+  MonthIncrementSlider.prototype.setMaxValue = function(value) {
+    if (value instanceof Date &&
+      (this.min_date === undefined || value > this.min_date)) {
       this.max_date = new Date(value.getUTCFullYear(), value.getUTCMonth(), value.getUTCDate());
       this.max_value = this.max_date;
       this.callCallback(IncrementSlider.prototype.enum.callbacks.maxchange);
@@ -61,195 +62,202 @@ var MonthIncrementSlider = (function(){
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.setUIValue = function(){
+   * @override
+   **/
+  MonthIncrementSlider.prototype.setUIValue = function() {
     this.input.children[0].innerHTML = DateUtils.getMonthString(this.date.getUTCMonth(), this.lang);
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.testMin = function () {
+   * @override
+   **/
+  MonthIncrementSlider.prototype.testMin = function() {
     return this.min_date !== undefined &&
       this.min_date.getUTCFullYear() === this.date.getUTCFullYear() && this.min_date.getUTCMonth() === this.date.getUTCMonth();
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.testMax = function () {
+   * @override
+   **/
+  MonthIncrementSlider.prototype.testMax = function() {
     return this.max_date !== undefined &&
       this.max_date.getUTCFullYear() === this.date.getUTCFullYear() && this.max_date.getUTCMonth() === this.date.getUTCMonth();
   };
 
   /**
-  * @override
-  **/
+   * @override
+   **/
   MonthIncrementSlider.prototype.onPrevClick = function() {
-    if(this.prev.isDisabled === true){
+    if (this.prev.isDisabled === true) {
       return;
     }
     var self = this;
     var year = this.date.getUTCFullYear(),
-        month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
-        apply = false;
+      month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
+      apply = false;
     //If no min_date, no constraints.
-    if(this.min_date === undefined || this.min_date.getUTCFullYear() < year-1){
+    if (this.min_date === undefined || this.min_date.getUTCFullYear() < year - 1) {
       apply = true;
       this.decrementMonth();
-      if(month === 11){
+      if (month === 11) {
         this.date.setUTCFullYear(year - 1);
       }
-    //If min year is = to year, must check for month and day.
-    }else if(this.min_date.getUTCFullYear() === year && month !== 11){
+      //If min year is = to year, must check for month and day.
+    } else if (this.min_date.getUTCFullYear() === year && month !== 11) {
       //Check if action is valid
-      if(this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month){
+      if (this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month) {
         apply = true;
         this.decrementMonth();
       }
       //Granted min month = month
       //Resets the day if conflict between min day and currently selected day
-      if(this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()){
+      if (this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()) {
         this.date.setUTCDate(this.min_date.getUTCDate());
       }
 
-    }else if(this.min_date.getUTCFullYear() === year - 1 && month === 11){
-      if(this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month){
+    } else if (this.min_date.getUTCFullYear() === year - 1 && month === 11) {
+      if (this.min_date.getUTCMonth() < month || this.min_date.getUTCMonth() === month) {
         apply = true;
         this.decrementMonth();
         this.date.setUTCFullYear(year - 1);
       }
 
-      if(this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()){
+      if (this.min_date.getUTCMonth() === month && this.min_date.getUTCDay() > this.date.getUTCDay()) {
         this.date.setUTCDate(this.min_date.getUTCDate());
       }
 
-    }else if(this.min_date.getUTCFullYear() === year - 1 && month !== 11){
+    } else if (this.min_date.getUTCFullYear() === year - 1 && month !== 11) {
       apply = true;
       this.decrementMonth();
     }
 
-    if(apply){
+    if (apply) {
       this.setValue(this.date);
       this.updateUIControls();
-      this.emit(this.mediation.events.emit.mupdate, {date: this.date});
+      this.emit(this.mediation.events.emit.mupdate, { date: this.date });
       IncrementSlider.prototype.onPrevClick.call(this);
     }
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.onNextClick = function () {
-    if(this.next.isDisabled === true){
+   * @override
+   **/
+  MonthIncrementSlider.prototype.onNextClick = function() {
+    if (this.next.isDisabled === true) {
       return;
     }
     var year = this.date.getUTCFullYear(),
-        month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
-        apply = false;
+      month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
+      apply = false;
     //If no max_date, no constraints.
-    if(this.max_date === undefined || this.max_date.getUTCFullYear() > year+1){
+    if (this.max_date === undefined || this.max_date.getUTCFullYear() > year + 1) {
       apply = true;
       this.incrementMonth();
-      if(month === 0){
+      if (month === 0) {
         this.date.setUTCFullYear(year + 1);
       }
-    //If max year is = to year, must check for month and day.
-    }else if(this.max_date.getUTCFullYear() === year && month !== 0){
+      //If max year is = to year, must check for month and day.
+    } else if (this.max_date.getUTCFullYear() === year && month !== 0) {
       //Check if action is valid
-      if(this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month){
+      if (this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month) {
         apply = true;
         this.incrementMonth();
       }
       //Granted max month = month
       //Resets the day if conflict between max day and currently selected day
-      if(this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()){
+      if (this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()) {
         this.date.setUTCDate(this.max_date.getUTCDate());
       }
 
-    }else if(this.max_date.getUTCFullYear() === year + 1 && month === 0){
-      if(this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month){
+    } else if (this.max_date.getUTCFullYear() === year + 1 && month === 0) {
+      if (this.max_date.getUTCMonth() > month || this.max_date.getUTCMonth() === month) {
         apply = true;
         this.incrementMonth();
         this.date.setUTCFullYear(year + 1);
       }
 
-      if(this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()){
+      if (this.max_date.getUTCMonth() === month && this.max_date.getUTCDay() < this.date.getUTCDay()) {
         this.date.setUTCDate(this.max_date.getUTCDate());
       }
 
-    }else if(this.max_date.getUTCFullYear() === year + 1 && month !== 0){
+    } else if (this.max_date.getUTCFullYear() === year + 1 && month !== 0) {
       apply = true;
       this.incrementMonth();
-    }else{
+    } else {
       //do nothing
     }
 
-    if(apply){
+    if (apply) {
       this.setValue(this.date);
       this.updateUIControls();
-      this.emit(this.mediation.events.emit.mupdate, {date: this.date});
+      this.emit(this.mediation.events.emit.mupdate, { date: this.date });
       IncrementSlider.prototype.onNextClick.call(this);
     }
   };
 
-  MonthIncrementSlider.prototype.incrementMonth = function () {
+  MonthIncrementSlider.prototype.incrementMonth = function() {
     var month = NumberUtils.mod(this.date.getUTCMonth() + 1, 12),
-        daysInMonth = month !== 0 ?
-                      DateUtils.daysInMonth(this.date.getUTCFullYear(), month):
-                      DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, month);
+      daysInMonth = month !== 0 ?
+      DateUtils.daysInMonth(this.date.getUTCFullYear(), month) :
+      DateUtils.daysInMonth(this.date.getUTCFullYear() + 1, month);
     //To prevent invalid dates like Feb 30th
     //Takes in account change of year
-    if(this.date.getUTCDate() > daysInMonth){
+    if (this.date.getUTCDate() > daysInMonth) {
       this.date.setUTCDate(daysInMonth);
     }
     this.date.setUTCMonth(month);
   };
 
-  MonthIncrementSlider.prototype.decrementMonth = function () {
+  MonthIncrementSlider.prototype.decrementMonth = function() {
     var month = NumberUtils.mod(this.date.getUTCMonth() - 1, 12),
-        daysInMonth = month !== 11 ?
-                      DateUtils.daysInMonth(this.date.getUTCFullYear(), month):
-                      DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, month);
+      daysInMonth = month !== 11 ?
+      DateUtils.daysInMonth(this.date.getUTCFullYear(), month) :
+      DateUtils.daysInMonth(this.date.getUTCFullYear() - 1, month);
     //To prevent invalid dates like Feb 30th
     //Takes in account change of year
-    if(this.date.getUTCDate() > daysInMonth){
+    if (this.date.getUTCDate() > daysInMonth) {
       this.date.setUTCDate(daysInMonth);
     }
     this.date.setUTCMonth(month);
   };
 
-  MonthIncrementSlider.prototype.subscribe = function (parent) {
-    if(parent !== undefined){
+  MonthIncrementSlider.prototype.subscribe = function(parent) {
+    if (parent !== undefined) {
       this.mediator.subscribe(this.mediation.events.emit.mupdate, parent);
+      this.mediator.subscribe(this.mediation.events.emit.commit, parent);
     }
   };
 
   /**
-  * @override
-  **/
-  MonthIncrementSlider.prototype.notify = function (e) {
-    if(e.scope === Events.scope.broadcast){
-      switch(e.desc){
+   * @override
+   **/
+  MonthIncrementSlider.prototype.notify = function(e) {
+    if (e.scope === Events.scope.broadcast) {
+      switch (e.desc) {
         case Events.desc.update.partial:
-          if(e.data.min_date !== undefined){
+          if (e.data.min_date !== undefined) {
             this.setMinValue(e.data.min_date);
           }
-          if(e.data.max_date !== undefined){
+          if (e.data.max_date !== undefined) {
             this.setMaxValue(e.data.max_date);
           }
         case Events.desc.update.mis:
-          if(e.data.date !== undefined && e.data.date instanceof Date){
+          if (e.data.date !== undefined && e.data.date instanceof Date) {
             this.setValue(e.data.date);
           }
           this.updateUIControls();
           break;
         case Events.desc.request.decrement.month:
           this.onPrevClick();
+          if (e.data.commit) {
+            this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+          }
           break;
         case Events.desc.request.increment.month:
           this.onNextClick();
+          if (e.data.commit) {
+            this.emit(this.mediation.events.emit.commit, { date: new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate()) });
+          }
           break;
         default:
           break;

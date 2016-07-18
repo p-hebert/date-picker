@@ -1,4 +1,4 @@
-(function(){
+(function() {
 
   //=include ./events/events.js
   //=include ./events/mutex.js
@@ -16,40 +16,40 @@
   //=include ./components/controls/picker-controls.js
   //=include ./components/partial.js
 
-  function DatePicker(options){
+  function DatePicker(options) {
     //super()
     Colleague.call(this, new Mediator(), DatePicker.prototype.component);
     this.generateEvents();
 
-    if(options === undefined){
+    if (options === undefined) {
       options = this.deepCopyObject(DatePicker.prototype.defaults);
-    }else{
+    } else {
       options = Object.assign(this.deepCopyObject(DatePicker.prototype.defaults), this.deepCopyObject(options));
     }
     options.mediator = this.mediator;
     this.context = options.parent;
 
-    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined)?
-                  options.scale : DatePicker.prototype.defaults.scale;
+    this.scale = (options.scale !== undefined && DatePicker.prototype.enum.scales[options.scale] !== undefined) ?
+      options.scale : DatePicker.prototype.defaults.scale;
 
     this.min_date = options.min_date instanceof Date ?
-                    options.min_date :
-                    undefined;
-    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date?
-                    options.max_date :
-                    undefined;
+      options.min_date :
+      undefined;
+    this.max_date = options.max_date instanceof Date && options.max_date > this.min_date ?
+      options.max_date :
+      undefined;
 
     this.date = options.date instanceof Date && options.date >= this.min_date && options.date <= this.max_date ?
-                options.date : undefined;
+      options.date : undefined;
 
-    if(this.date === undefined){
-      if(this.max_date){
+    if (this.date === undefined) {
+      if (this.max_date) {
         this.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
         options.date = new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
-      }else if(this.min_date){
+      } else if (this.min_date) {
         this.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
         options.date = new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
-      }else{
+      } else {
         this.date = new Date();
         options.date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
       }
@@ -57,8 +57,8 @@
     this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
 
     this.lang = options.lang !== undefined &&
-                DatePicker.prototype.enum.languages[options.lang] !== undefined ?
-                DatePicker.prototype.enum.languages[options.lang] : 'en';
+      DatePicker.prototype.enum.languages[options.lang] !== undefined ?
+      DatePicker.prototype.enum.languages[options.lang] : 'en';
 
     //Setting up the controls
     this.controls = new PickerControls(options);
@@ -120,10 +120,10 @@
 
   DatePicker.prototype.enum = {
     scales: {
-      day : "day",
-      week : "week",
-      month : "month",
-      year : "year"
+      day: "day",
+      week: "week",
+      month: "month",
+      year: "year"
     },
     languages: {
       en: 'en',
@@ -147,7 +147,7 @@
         year: "YEARPARTIAL"
       },
       sub: {
-        day:{
+        day: {
           mis: "DAYMIS",
           yis: "DAYYIS",
           cal: "DAYCAL",
@@ -172,89 +172,105 @@
     }
   };
 
-  DatePicker.prototype.getAPI = function () {
+  DatePicker.prototype.getAPI = function() {
     var self = this;
     return {
-      getDate: function(){
+      getDate: function() {
         return self.getDate();
       },
-      setDate: function(date){
+      setDate: function(date) {
         self.setDate(date);
       },
-      getMinDate: function(){
+      incrementDate: function(commit) {
+        return self.incrementDate(commit);
+      },
+      decrementDate: function(commit) {
+        return self.decrementDate(commit);
+      },
+      getMinDate: function() {
         return self.getMinDate();
       },
-      setMinDate: function(date){
+      setMinDate: function(date) {
         self.setMinDate(date);
       },
-      getMaxDate: function(){
+      getMaxDate: function() {
         return self.getMaxDate();
       },
-      setMaxDate: function(date){
+      setMaxDate: function(date) {
         self.setMaxDate(date);
       },
-      getPeriod: function(){
+      getPeriod: function() {
         return self.getPeriod();
       },
-      getScales: function(){
+      getScales: function() {
         return self.getScales();
       },
-      getScale: function(){
+      getScale: function() {
         return self.getScale();
       },
-      changeScale: function(scale){
+      changeScale: function(scale) {
         self.changeScale(scale);
       },
-      addEventListener: function(e, c){
-        self.addEventListener(e,c);
+      addEventListener: function(e, c) {
+        self.addEventListener(e, c);
       },
-      getHTML: function(){
+      getHTML: function() {
         return self.getHTML();
       },
-      getComponents: function(){
+      getComponents: function() {
         return self.getComponents();
       },
-      getComponent: function(comp){
+      getComponent: function(comp) {
         return self.getComponent(comp);
       },
-      commit: function(){
+      commit: function() {
         self.commit();
       },
-      rollback: function(){
+      rollback: function() {
         self.rollback();
       },
-      patchSVGURLs: function(){
+      patchSVGURLs: function() {
         self.patchSVGURLs();
       }
     };
   };
 
-  DatePicker.prototype.getDate = function () {
+  DatePicker.prototype.getDate = function() {
     return new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
   };
 
-  DatePicker.prototype.setDate = function (date) {
-    if(date !== undefined && date instanceof Date &&
-       (this.min_date === undefined || date >= this.min_date) &&
-       (this.max_date === undefined || date <= this.max_date)){
+  DatePicker.prototype.setDate = function(date) {
+    if (date !== undefined && date instanceof Date &&
+      (this.min_date === undefined || date >= this.min_date) &&
+      (this.max_date === undefined || date <= this.max_date)) {
       this.date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {date: date});
+      this.emit(this.mediation.events.broadcast.gupdate, { date: date });
       this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, date);
       return true;
     }
     return false;
   };
 
-  DatePicker.prototype.getMinDate = function () {
-    if(this.min_date === undefined) return undefined;
+  DatePicker.prototype.incrementDate = function(commit) {
+    commit = commit === undefined ? false : !!commit;
+    this.controls.onNextClick(commit);
+  };
+
+  DatePicker.prototype.decrementDate = function(commit) {
+    commit = commit === undefined ? false : !!commit;
+    this.controls.onPrevClick(commit);
+  };
+
+  DatePicker.prototype.getMinDate = function() {
+    if (this.min_date === undefined) return undefined;
     return new Date(this.min_date.getUTCFullYear(), this.min_date.getUTCMonth(), this.min_date.getUTCDate());
   };
 
-  DatePicker.prototype.setMinDate = function (date) {
-    if(date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)){
+  DatePicker.prototype.setMinDate = function(date) {
+    if (date !== undefined && date instanceof Date && (this.max_date === undefined || date < this.max_date)) {
       this.min_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {min_date: date});
-      if(this.date < this.min_date){
+      this.emit(this.mediation.events.broadcast.gupdate, { min_date: date });
+      if (this.date < this.min_date) {
         this.setDate(this.min_date);
       }
       this.callCallback(DatePicker.prototype.enum.callbacks.minDateUpdate, date);
@@ -263,16 +279,16 @@
     return false;
   };
 
-  DatePicker.prototype.getMaxDate = function () {
-    if(this.max_date === undefined) return undefined;
+  DatePicker.prototype.getMaxDate = function() {
+    if (this.max_date === undefined) return undefined;
     return new Date(this.max_date.getUTCFullYear(), this.max_date.getUTCMonth(), this.max_date.getUTCDate());
   };
 
-  DatePicker.prototype.setMaxDate = function (date) {
-    if(date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)){
+  DatePicker.prototype.setMaxDate = function(date) {
+    if (date !== undefined && date instanceof Date && (this.min_date === undefined || date > this.min_date)) {
       this.max_date = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
-      this.emit(this.mediation.events.broadcast.gupdate, {max_date: date});
-      if(this.date > this.max_date){
+      this.emit(this.mediation.events.broadcast.gupdate, { max_date: date });
+      if (this.date > this.max_date) {
         this.setDate(this.max_date);
       }
       this.callCallback(DatePicker.prototype.enum.callbacks.maxDateUpdate, date);
@@ -281,24 +297,24 @@
     return false;
   };
 
-  DatePicker.prototype.getPeriod = function () {
+  DatePicker.prototype.getPeriod = function() {
     var period = {};
-    switch(this.scale){
+    switch (this.scale) {
       case DatePicker.prototype.enum.scales.day:
         period.date = this.getDate();
         break;
       case DatePicker.prototype.enum.scales.week:
         period = DateUtils.getWeekFALDays(this.date);
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
       case DatePicker.prototype.enum.scales.month:
         period.start = this.getDate();
         period.start.setUTCDate(1);
         period.end = this.getDate();
         period.end.setUTCDate(DateUtils.daysInMonth(period.end.getUTCFullYear(), period.end.getUTCMonth()));
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
       case DatePicker.prototype.enum.scales.year:
         period.start = this.getDate();
@@ -307,39 +323,39 @@
         period.end = this.getDate();
         period.end.setUTCMonth(11);
         period.end.setUTCDate(31);
-        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate(): period.start;
-        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate(): period.end;
+        period.start = this.min_date !== undefined && period.start.getTime() < this.min_date.getTime() ? this.getMinDate() : period.start;
+        period.end = this.max_date !== undefined && period.end.getTime() > this.max_date.getTime() ? this.getMaxDate() : period.end;
         break;
     }
     return period;
   };
 
-  DatePicker.prototype.getScales = function () {
+  DatePicker.prototype.getScales = function() {
     return DatePicker.prototype.enum.scales;
   };
 
-  DatePicker.prototype.getScale = function () {
+  DatePicker.prototype.getScale = function() {
     return this.scale;
   };
 
-  DatePicker.prototype.changeScale = function(scale){
+  DatePicker.prototype.changeScale = function(scale) {
     this.scale = DatePicker.prototype.enum.scales[scale] === undefined ?
-                 DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
+      DatePicker.prototype.enum.scales.day : DatePicker.prototype.enum.scales[scale];
     this.body.removeChild(this.body.children[0]);
     this.body.appendChild(this.partials[this.scale].getHTML());
     this.callCallback(DatePicker.prototype.enum.callbacks.scaleUpdate, scale);
   };
 
-  DatePicker.prototype.getHTML = function () {
+  DatePicker.prototype.getHTML = function() {
     return this.html;
   };
 
-  DatePicker.prototype.getComponents = function () {
+  DatePicker.prototype.getComponents = function() {
     return DatePicker.prototype.enum.components;
   };
 
-  DatePicker.prototype.getComponent = function(comp){
-    switch(comp){
+  DatePicker.prototype.getComponent = function(comp) {
+    switch (comp) {
       case DatePicker.prototype.enum.components.partials.day:
         return this.partials[DatePicker.prototype.enum.scales.day];
       case DatePicker.prototype.enum.components.partials.week:
@@ -375,38 +391,38 @@
     }
   };
 
-  DatePicker.prototype.addEventListener = function(e, callback){
-    if(typeof e === "string"){
-      for(var key in DatePicker.prototype.enum.callbacks){
-        if(e === key){
+  DatePicker.prototype.addEventListener = function(e, callback) {
+    if (typeof e === "string") {
+      for (var key in DatePicker.prototype.enum.callbacks) {
+        if (e === key) {
           this.registerCallback(e, callback);
           break;
         }
       }
-    }else{
+    } else {
       throw new Error('Illegal Argument: addEventListener takes a string as first parameter');
     }
   };
 
-  DatePicker.prototype.commit = function () {
+  DatePicker.prototype.commit = function() {
     var date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     this.prev_date = new Date(this.date.getUTCFullYear(), this.date.getUTCMonth(), this.date.getUTCDate());
     this.emit(this.mediation.events.broadcast.commit, {});
     this.callCallback(DatePicker.prototype.enum.callbacks.commit, date);
   };
 
-  DatePicker.prototype.rollback = function () {
+  DatePicker.prototype.rollback = function() {
     var date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
     this.date = new Date(this.prev_date.getUTCFullYear(), this.prev_date.getUTCMonth(), this.prev_date.getUTCDate());
     this.emit(this.mediation.events.broadcast.rollback, {});
     this.callCallback(DatePicker.prototype.enum.callbacks.rollback, date);
   };
 
-  DatePicker.prototype.generateHTML = function () {
+  DatePicker.prototype.generateHTML = function() {
     var self = this,
-        callback = function(e){
-          self.onModeBtnClick(e.target);
-        };
+      callback = function(e) {
+        self.onModeBtnClick(e.target);
+      };
     var datepicker = document.createElement('div');
     datepicker.className = "date-picker";
 
@@ -417,15 +433,15 @@
     moderow.className = "date-picker-mode-button-row";
 
     var button;
-    for(var key in DatePicker.prototype.enum.scales){
+    for (var key in DatePicker.prototype.enum.scales) {
       button = document.createElement('span');
       button.scale = key;
       button.innerHTML = key.charAt(0).toUpperCase() + key.slice(1);
       button.addEventListener('click', callback);
-      if(this.scale === key){
+      if (this.scale === key) {
         moderow.current = button;
         button.className = "date-picker-mode-button active";
-      }else{
+      } else {
         button.className = "date-picker-mode-button";
       }
       moderow.appendChild(button);
@@ -438,17 +454,17 @@
     content.appendChild(moderow);
     content.appendChild(body);
 
-    document.addEventListener('click', function(e){
+    document.addEventListener('click', function(e) {
       var isChild = false,
-          node = e.target;
+        node = e.target;
       while (node !== null) {
         if (node == datepicker) {
-           isChild = true;
+          isChild = true;
         }
         node = node.parentNode;
       }
       var html = self.controls.getHTML();
-      if(!isChild && html.className !== "date-picker-input"){
+      if (!isChild && html.className !== "date-picker-input") {
         html.className = "date-picker-input";
         self.commit();
       }
@@ -462,36 +478,36 @@
 
     //Appending HTML to options.parent
     var parent;
-    if(typeof this.context === "string"){
+    if (typeof this.context === "string") {
       parent = document.querySelector(this.context);
       parent.appendChild(this.html);
-    }else if(this.context.nodeType !== undefined){
+    } else if (this.context.nodeType !== undefined) {
       parent = this.context;
       parent.appendChild(this.html);
     }
   };
 
-  DatePicker.prototype.onModeBtnClick = function (span) {
+  DatePicker.prototype.onModeBtnClick = function(span) {
     var buttons = this.html.children[1].children[0];
     buttons.current.className = "date-picker-mode-button";
     buttons.current = span;
     this.changeScale(span.scale);
-    this.emit(this.mediation.events.broadcast.pcupdate, {scale: span.scale});
+    this.emit(this.mediation.events.broadcast.pcupdate, { scale: span.scale });
     buttons.current.className = "date-picker-mode-button active";
   };
 
   /**
-  * Initializes the SVG icons for the DatePicker
-  * @param options <Object> List of options for the DatePicker
-  **/
-  DatePicker.prototype.generateSVG = function(icons){
+   * Initializes the SVG icons for the DatePicker
+   * @param options <Object> List of options for the DatePicker
+   **/
+  DatePicker.prototype.generateSVG = function(icons) {
     //If icons are already set, return
-    if(document.querySelector("svg#dp-icons")){
+    if (document.querySelector("svg#dp-icons")) {
       return document.querySelector("svg#dp-icons");
     }
-    var svg = document.createElementNS('http://www.w3.org/2000/svg','svg'),
-        idsmall = ['arrow-prev-small', 'arrow-next-small'],
-        idbig = ['arrow-prev-big', 'arrow-next-big'];
+    var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+      idsmall = ['arrow-prev-small', 'arrow-next-small'],
+      idbig = ['arrow-prev-big', 'arrow-next-big'];
     svg.id = "dp-icons";
     svg.style.display = "none";
     this.svg = svg;
@@ -502,44 +518,45 @@
     return svg;
   };
 
-  DatePicker.prototype._initIcons = function (ids, icons) {
+  DatePicker.prototype._initIcons = function(ids, icons) {
     var valid = false;
     var id;
-    var elements = [], element;
-    if(icons !== undefined){
+    var elements = [],
+      element;
+    if (icons !== undefined) {
       valid = true;
-      for(var i = 0 ; i < ids.length ; i++){
+      for (var i = 0; i < ids.length; i++) {
         id = ids[i];
         //Verifies if the icons passed are HTMLElements
         try {
-          if(typeof icons[id] === "string"){
+          if (typeof icons[id] === "string") {
             element = document.createElement('div');
             element.innerHTML = icons[id];
             element = element.firstChild;
             element.id = id;
             elements.push(element);
-          }else if(icons[id].nodeType !== undefined){
+          } else if (icons[id].nodeType !== undefined) {
             elements.push(icons[id]);
-          }else{
+          } else {
             throw new Error("Illegal argument: Icons passed in option.icons are not HTML string nor HTMLElements. Falling back to base icons for the group of icons " + ids.toString() + ".");
           }
-        }catch(e){
+        } catch (e) {
           valid = false;
           console.error(e);
         }
       }
     }
 
-    if(!valid){
-      for(var j = 0 ; j < ids.length; j++){
+    if (!valid) {
+      for (var j = 0; j < ids.length; j++) {
         id = ids[j];
         element = document.createElement('svg');
         element.innerHTML = DatePicker.prototype.defaults.icons[id];
         element = element.firstChild.firstChild;
         this.svg.appendChild(element);
       }
-    }else{
-      for(var k = 0 ; k < elements.length ; k++){
+    } else {
+      for (var k = 0; k < elements.length; k++) {
         this.svg.appendChild(elements[k]);
       }
     }
@@ -548,21 +565,21 @@
   //Fixes references to inline SVG elements when the <base> tag is in use.
   //Related to http://stackoverflow.com/a/18265336/796152
   //https://gist.github.com/leonderijke/c5cf7c5b2e424c0061d2
-  DatePicker.prototype.patchSVGURLs = function () {
-    if(document.querySelector("base")){
-  		var baseUrl = window.location.href
-  			.replace(window.location.hash, "");
-  		[].slice.call(document.querySelectorAll("use[*|href]"))
-  			.filter(function(element) {
-  				return (element.getAttribute("xlink:href").indexOf("#") === 0);
-  			})
-  			.forEach(function(element) {
-  				element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
-  			});
+  DatePicker.prototype.patchSVGURLs = function() {
+    if (document.querySelector("base")) {
+      var baseUrl = window.location.href
+        .replace(window.location.hash, "");
+      [].slice.call(document.querySelectorAll("use[*|href]"))
+        .filter(function(element) {
+          return (element.getAttribute("xlink:href").indexOf("#") === 0);
+        })
+        .forEach(function(element) {
+          element.setAttribute("xlink:href", baseUrl + element.getAttribute("xlink:href"));
+        });
     }
   };
 
-  DatePicker.prototype.generateEvents = function () {
+  DatePicker.prototype.generateEvents = function() {
     //Commit & rollback
     this.mediation.events.broadcast.commit = this._constructEventString(Events.scope.broadcast, Events.desc.commit);
     this.mediation.events.broadcast.rollback = this._constructEventString(Events.scope.broadcast, Events.desc.rollback);
@@ -583,7 +600,7 @@
     this.mediation.events.broadcast.incyear = this._constructEventString(Events.scope.broadcast, Events.desc.request.increment.year);
   };
 
-  DatePicker.prototype.subscribe = function () {
+  DatePicker.prototype.subscribe = function() {
     //Commit & rollback
     this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.day);
     this.mediator.subscribe(this.mediation.events.broadcast.commit, this.partials.week);
@@ -622,11 +639,11 @@
   };
 
   /**
-  * @override
-  **/
-  DatePicker.prototype.notify = function (e) {
-    if(e.scope === Events.scope.emit){
-      switch(e.desc){
+   * @override
+   **/
+  DatePicker.prototype.notify = function(e) {
+    if (e.scope === Events.scope.emit) {
+      switch (e.desc) {
         //Updates
         case Events.desc.update.day:
           this.emit(this.mediation.events.broadcast.wupdate, e.data);
@@ -652,7 +669,7 @@
           this.emit(this.mediation.events.broadcast.mupdate, e.data);
           this.emit(this.mediation.events.broadcast.pcupdate, e.data);
           break;
-        //Requests
+          //Requests
         case Events.desc.request.decrement.day:
           this.emit(this.mediation.events.broadcast.decday, e.data);
           break;
@@ -677,10 +694,13 @@
         case Events.desc.request.increment.year:
           this.emit(this.mediation.events.broadcast.incyear, e.data);
           break;
+        case Events.desc.commit:
+          this.commit();
+          break;
         default:
           break;
       }
-      if(e.data.date instanceof Date){
+      if (e.data.date instanceof Date) {
         this.date = new Date(e.data.date.getUTCFullYear(), e.data.date.getUTCMonth(), e.data.date.getUTCDate());
         this.callCallback(DatePicker.prototype.enum.callbacks.dateUpdate, e.data.date);
       }
@@ -688,21 +708,21 @@
     Colleague.prototype.notify.call(this, e);
   };
 
-  DatePicker.prototype.deepCopyObject = function(options){
-      return deepCopyObject(options, {});
+  DatePicker.prototype.deepCopyObject = function(options) {
+    return deepCopyObject(options, {});
   };
 
-  var deepCopyObject = function(object, copy){
-    for(var key in object){
-      if(typeof object[key] === "string" || typeof object[key] === "number" || typeof object[key] === "function"){
+  var deepCopyObject = function(object, copy) {
+    for (var key in object) {
+      if (typeof object[key] === "string" || typeof object[key] === "number" || typeof object[key] === "function") {
         copy[key] = object[key];
-      }else if(typeof object[key] === "object" && object[key] !== null){
-        if(object[key] instanceof Date){
-          object[key].setHours(0,0,0,0);
+      } else if (typeof object[key] === "object" && object[key] !== null) {
+        if (object[key] instanceof Date) {
+          object[key].setHours(0, 0, 0, 0);
           copy[key] = new Date(object[key].getUTCFullYear(), object[key].getUTCMonth(), object[key].getUTCDate());
-        }else if (object[key].nodeType !== undefined){
+        } else if (object[key].nodeType !== undefined) {
           copy[key] = object[key];
-        }else{
+        } else {
           copy[key] = deepCopyObject(object[key], {});
         }
       }

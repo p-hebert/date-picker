@@ -138,6 +138,10 @@ affect the DatePicker inner state.
 | `getAPI()`  | Provides a proxy comprised of all the API calls listed below | **Yes**       |
 | `getDate()` | Accessor for the current date | **Yes**       |
 | `setDate(Date: date)` | Mutator for the current date | **Yes**       |
+| `incrementDate(boolean: commit)` | Increments the date by one unit of the current scale. 
+Setting commit to true will also issue a commit event. Defaults to false. | **Yes**       |
+| `decrementDate(boolean: commit)` | Decrements the date by one unit of the current scale.
+Setting commit to true will also issue a commit event. Defaults to false. | **Yes**       |
 | `getMinDate()`  | Accessor for the min date      | **Yes**       |
 | `setMinDate(Date: date)`  | Mutator for the max date      | **Yes**       |
 | `getMinDate()`  | Accessor for the max date      | **Yes**       |
