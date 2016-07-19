@@ -181,11 +181,11 @@
       setDate: function(date) {
         self.setDate(date);
       },
-      incrementDate: function(commit) {
-        return self.incrementDate(commit);
+      incrementDate: function(commit, scale) {
+        return self.incrementDate(commit, scale);
       },
-      decrementDate: function(commit) {
-        return self.decrementDate(commit);
+      decrementDate: function(commit, scale) {
+        return self.decrementDate(commit, scale);
       },
       getMinDate: function() {
         return self.getMinDate();
@@ -251,14 +251,14 @@
     return false;
   };
 
-  DatePicker.prototype.incrementDate = function(commit) {
+  DatePicker.prototype.incrementDate = function(commit, scale) {
     commit = commit === undefined ? false : !!commit;
-    this.controls.onNextClick(commit);
+    this.controls.incrementDate(commit, scale);
   };
 
-  DatePicker.prototype.decrementDate = function(commit) {
+  DatePicker.prototype.decrementDate = function(commit, scale) {
     commit = commit === undefined ? false : !!commit;
-    this.controls.onPrevClick(commit);
+    this.controls.decrementDate(commit, scale);
   };
 
   DatePicker.prototype.getMinDate = function() {

@@ -2039,13 +2039,23 @@
     /**
      * @override
      **/
-    PickerControls.prototype.onPrevClick = function(commit) {
+    PickerControls.prototype.onPrevClick = function() {
       if (this.prev.isDisabled === true) {
         return;
       }
+      this.decrementDate();
+    };
+  
+    PickerControls.prototype.decrementDate = function(commit, scale) {
       var e = {};
+      var decscale;
       e.commit = commit === undefined || commit === true;
-      switch (this.scale) {
+      if (scale !== undefined) {
+        decscale = scale;
+      } else {
+        decscale = this.scale;
+      }
+      switch (decscale) {
         case PickerControls.prototype.enum.scales.day:
           this.emit(this.mediation.events.emit.decday, e);
           break;
@@ -2064,13 +2074,23 @@
     /**
      * @override
      **/
-    PickerControls.prototype.onNextClick = function(commit) {
+    PickerControls.prototype.onNextClick = function() {
       if (this.next.isDisabled === true) {
         return;
       }
+      this.incrementDate();
+    };
+  
+    PickerControls.prototype.incrementDate = function(commit, scale) {
       var e = {};
+      var incscale;
       e.commit = commit === undefined || commit === true;
-      switch (this.scale) {
+      if (scale !== undefined) {
+        incscale = scale;
+      } else {
+        incscale = this.scale;
+      }
+      switch (incscale) {
         case PickerControls.prototype.enum.scales.day:
           this.emit(this.mediation.events.emit.incday, e);
           break;
@@ -2085,6 +2105,7 @@
           break;
       }
     };
+  
   
     PickerControls.prototype.generateEvents = function() {
       this.mediation.events.emit.pcupdate = this._constructEventString(Events.scope.emit, Events.desc.update.pcs);
@@ -2665,11 +2686,11 @@
       setDate: function(date) {
         self.setDate(date);
       },
-      incrementDate: function(commit) {
-        return self.incrementDate(commit);
+      incrementDate: function(commit, scale) {
+        return self.incrementDate(commit, scale);
       },
-      decrementDate: function(commit) {
-        return self.decrementDate(commit);
+      decrementDate: function(commit, scale) {
+        return self.decrementDate(commit, scale);
       },
       getMinDate: function() {
         return self.getMinDate();
@@ -2735,14 +2756,14 @@
     return false;
   };
 
-  DatePicker.prototype.incrementDate = function(commit) {
+  DatePicker.prototype.incrementDate = function(commit, scale) {
     commit = commit === undefined ? false : !!commit;
-    this.controls.onNextClick(commit);
+    this.controls.incrementDate(commit, scale);
   };
 
-  DatePicker.prototype.decrementDate = function(commit) {
+  DatePicker.prototype.decrementDate = function(commit, scale) {
     commit = commit === undefined ? false : !!commit;
-    this.controls.onPrevClick(commit);
+    this.controls.decrementDate(commit, scale);
   };
 
   DatePicker.prototype.getMinDate = function() {

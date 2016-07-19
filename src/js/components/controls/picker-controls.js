@@ -229,13 +229,23 @@ var PickerControls = (function() {
   /**
    * @override
    **/
-  PickerControls.prototype.onPrevClick = function(commit) {
+  PickerControls.prototype.onPrevClick = function() {
     if (this.prev.isDisabled === true) {
       return;
     }
+    this.decrementDate();
+  };
+
+  PickerControls.prototype.decrementDate = function(commit, scale) {
     var e = {};
+    var decscale;
     e.commit = commit === undefined || commit === true;
-    switch (this.scale) {
+    if (scale !== undefined) {
+      decscale = scale;
+    } else {
+      decscale = this.scale;
+    }
+    switch (decscale) {
       case PickerControls.prototype.enum.scales.day:
         this.emit(this.mediation.events.emit.decday, e);
         break;
@@ -254,13 +264,23 @@ var PickerControls = (function() {
   /**
    * @override
    **/
-  PickerControls.prototype.onNextClick = function(commit) {
+  PickerControls.prototype.onNextClick = function() {
     if (this.next.isDisabled === true) {
       return;
     }
+    this.incrementDate();
+  };
+
+  PickerControls.prototype.incrementDate = function(commit, scale) {
     var e = {};
+    var incscale;
     e.commit = commit === undefined || commit === true;
-    switch (this.scale) {
+    if (scale !== undefined) {
+      incscale = scale;
+    } else {
+      incscale = this.scale;
+    }
+    switch (incscale) {
       case PickerControls.prototype.enum.scales.day:
         this.emit(this.mediation.events.emit.incday, e);
         break;
@@ -275,6 +295,7 @@ var PickerControls = (function() {
         break;
     }
   };
+
 
   PickerControls.prototype.generateEvents = function() {
     this.mediation.events.emit.pcupdate = this._constructEventString(Events.scope.emit, Events.desc.update.pcs);
