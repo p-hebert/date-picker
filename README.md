@@ -10,9 +10,7 @@ scales, from day to year.
 #### 1. Clone the Repository
 
 Change directory to the directory of your choice and then clone this repository
-using `git clone https://<username>@bitbucket.org/exekutiveco/exekutive-suite-date-picker.git <folder-name>`
-where `<username>` is your username and `<folder-name>` is the folder where you want
-to clone the repo.
+using `git clone https://github.com/p-hebert/date-picker`
 
 #### 2. Add the dist files to your project
 
@@ -47,7 +45,7 @@ pass some options, such as boundary dates, target HTMLElement, etc. See the
 
 Run the following command:
 
-`bower install 'https://bitbucket.org/exekutiveco/exekutive-suite-date-picker.git' --save`
+`bower install 'https://github.com/p-hebert/date-picker' --save`
 
 #### 2. Add the dist files to your project
 
@@ -60,8 +58,8 @@ your HTML:
 <html lang="en">
 
 <head>
-  <link rel="stylesheet" type="text/css" href="./bower_components/exekutive-suite-date-picker/dist/date-picker.css">
-  <script src="./bower_components/exekutive-suite-date-picker/dist/date-picker.js"></script>
+  <link rel="stylesheet" type="text/css" href="./bower_components/date-picker/dist/date-picker.css">
+  <script src="./bower_components/date-picker/dist/date-picker.js"></script>
 </head>
 <body>
   ...
@@ -81,9 +79,7 @@ pass some options, such as boundary dates, target HTMLElement, etc. See the
 #### 1. Clone the repository
 
 Change directory to the directory of your choice and then clone this repository
-using `git clone https://<username>@bitbucket.org/exekutiveco/exekutive-suite-date-picker.git <folder-name>`
-where `<username>` is your username and `<folder-name>` is the folder where you want
-to clone the repo.
+using `git clone https://github.com/p-hebert/date-picker`.
 
 #### 2. Install build dependencies
 
@@ -176,10 +172,5 @@ Setting commit to true will also issue a commit event. commit defaults to false,
 ## Authorship
 
 - Design and UX by @gregorybp
-- Markup and styling by @guillaume-t95
+- Markup and styling by @geeyoam
 - Javascript by @p-hebert
-
-### Other Notes
-
-- DateUtils.formatDate can be moved to another repository and modified for self-containment
-  and then posted to [this SO post](http://stackoverflow.com/questions/3552461/how-to-format-a-javascript-date)
